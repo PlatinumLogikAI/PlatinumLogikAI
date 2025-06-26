@@ -34,7 +34,7 @@ I live at the intersection of **music**, **tech**, **art**, **nature**, and **in
 A lighthearted Flappy Bird parody featuring the Poo emoji.
 
 - **Python version:** requires [pygame](https://www.pygame.org/); install with `pip install -r requirements.txt` then run `python crappy_turd.py`
-- **HTML version:** open `crappy_turd.html` in your browser
+- **### 🚀 [Click here to launch Crappy Turd!](https://platinumlogikai.github.io/PlatinumLogikAI/crappy_turd.html)
 - **Controls:** Space or click to flap. Use the Up/Down arrows for small nudges.
 - **High Score:** The game remembers your best score and shows it after each round. Press Space on the game-over screen to quickly restart.
 - **Blinking:** The poo now blinks whenever you score by clearing a pipe.
