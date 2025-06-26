@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crappy Turd</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  body { margin: 0; font-family: sans-serif; text-align: center; background: #87cefa; }
+  canvas { background: #87cefa; display: block; margin: 0 auto; }
+  #overlay { position:absolute; top:0; left:0; width:100%; height:100%;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    background:rgba(135,206,250,0.9); }
+  button { padding:10px 20px; margin:8px; font-size:16px; }
+  .title { font-family: 'Press Start 2P', monospace; font-size: 64px; color: #ffd700;
+    text-shadow: 4px 4px 0 #000; margin: 20px 0; }
+</style>
+</head>
+<body>
+<div id="overlay"></div>
+<canvas id="game" width="400" height="600"></canvas>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const GRAVITY = 0.25;
+const FLAP = -10;
+const PIPE_GAP = 200;
+const PIPE_WIDTH = 60;
+const PIPE_SPEED = 2;
+let frameId;
+let score = 0;
+let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
+const overlay = document.getElementById('overlay');
+
+class Poo {
+  constructor() {
+    this.x = WIDTH / 4;
+    this.y = HEIGHT / 2;
+    this.vel = 0;
+    this.size = 48;
+    this.blinkTimer = Math.random() * 200 + 100;
+    this.blinkFrames = 0;
+  }
+  flap() {
+    this.vel = FLAP;
+  }
+  nudgeUp() {
+    // small upward boost for finer control
+    this.vel += FLAP / 2;
+  }
+  nudgeDown() {
+    // small downward push for finer control
+    this.vel -= FLAP / 2;
+  }
+  blink() {
+    this.blinkFrames = 5;
+  }
+  update() {
+    this.vel += GRAVITY;
+    this.y += this.vel;
+    if (this.y < 0) { this.y = 0; this.vel = 0; }
+    if (this.y > HEIGHT) { this.y = HEIGHT; this.vel = 0; }
+    if (this.blinkTimer <= 0) {
+      if (this.blinkFrames === 0) {
+        this.blinkFrames = 5;
+        this.blinkTimer = Math.random() * 200 + 100;
+      }
+    } else {
+      this.blinkTimer--;
+    }
+    if (this.blinkFrames > 0) {
+      this.blinkFrames--;
+    }
+  }
+  draw() {
+    ctx.font = `${this.size}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('\uD83D\uDCA9', this.x, this.y);
+    if (this.blinkFrames > 0) {
+      ctx.fillStyle = '#8b4513';
+      const w = this.size;
+      const h = this.size;
+      ctx.fillRect(this.x - w * 0.22, this.y - h * 0.28, w * 0.15, h * 0.05);
+      ctx.fillRect(this.x + w * 0.07, this.y - h * 0.28, w * 0.15, h * 0.05);
+    }
+  }
+  get rect() {
+    return {x: this.x - this.size/2, y: this.y - this.size/2, w: this.size, h: this.size};
+  }
+}
+
+class Pipe {
+  constructor(x) {
+    this.x = x;
+    this.top = Math.random() * (HEIGHT - PIPE_GAP - 100) + 50;
+    this.passed = false;
+  }
+  update() { this.x -= PIPE_SPEED; }
+  draw() {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(this.x, 0, PIPE_WIDTH, this.top);
+    ctx.fillRect(this.x, this.top + PIPE_GAP, PIPE_WIDTH, HEIGHT - (this.top + PIPE_GAP));
+  }
+  offscreen() { return this.x + PIPE_WIDTH < 0; }
+  get topRect() { return {x: this.x, y: 0, w: PIPE_WIDTH, h: this.top}; }
+  get bottomRect() { return {x: this.x, y: this.top + PIPE_GAP, w: PIPE_WIDTH, h: HEIGHT - (this.top + PIPE_GAP)}; }
+}
+
+const poo = new Poo();
+let pipes;
+
+function resetGame() {
+  score = 0;
+  poo.y = HEIGHT / 2;
+  poo.vel = 0;
+  pipes = [new Pipe(WIDTH + 600)];
+}
+
+function rectsCollide(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function showStart() {
+  overlay.innerHTML = `<h1 class="title">Crappy Turd</h1><p>Press Space or click to flap.</p><p>High Score: ${highScore}</p><button id="startBtn">Start</button>`;
+  overlay.style.display = 'flex';
+  document.getElementById('startBtn').onclick = () => {
+    overlay.style.display = 'none';
+    resetGame();
+    gameLoop();
+  };
+}
+
+function showGameOver() {
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('ct_high_score', highScore);
+  }
+  overlay.innerHTML = `<p>Game Over! Score: ${score}</p><p>High Score: ${highScore}</p><button id="restartBtn">Restart</button><button id="quitBtn">Quit</button>`;
+  overlay.style.display = 'flex';
+  document.getElementById('restartBtn').onclick = () => {
+    overlay.style.display = 'none';
+    resetGame();
+    gameLoop();
+  };
+  document.getElementById('quitBtn').onclick = showStart;
+}
+
+function gameLoop() {
+  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+  poo.update();
+  if (pipes[pipes.length - 1].x < WIDTH - 250) {
+    pipes.push(new Pipe(WIDTH + 350));
+  }
+  for (let i = pipes.length - 1; i >= 0; i--) {
+    const p = pipes[i];
+    p.update();
+    p.draw();
+    if (p.offscreen()) pipes.splice(i,1);
+    if (!p.passed && p.x + PIPE_WIDTH < poo.x) {
+      p.passed = true;
+      score++;
+      poo.blink();
+    }
+    if (rectsCollide(poo.rect, p.topRect) || rectsCollide(poo.rect, p.bottomRect)) {
+      return endGame();
+    }
+  }
+  poo.draw();
+  ctx.fillStyle = 'black';
+  ctx.font = '24px sans-serif';
+  ctx.fillText('Score: ' + score, 50, 30);
+  frameId = requestAnimationFrame(gameLoop);
+}
+
+function endGame() {
+  cancelAnimationFrame(frameId);
+  showGameOver();
+}
+
+window.addEventListener('keydown', (e) => {
+  if (overlay.style.display !== 'none') {
+    if (e.code === 'Space') {
+      const restart = document.getElementById('restartBtn');
+      const start = document.getElementById('startBtn');
+      if (restart) restart.click();
+      else if (start) start.click();
+    }
+    return;
+  }
+  if (e.code === 'Space') {
+    poo.flap();
+  } else if (e.code === 'ArrowUp') {
+    poo.nudgeUp();
+  } else if (e.code === 'ArrowDown') {
+    poo.nudgeDown();
+  }
+});
+canvas.addEventListener('click', () => { if (overlay.style.display === 'none') poo.flap(); });
+
+ctx.textBaseline = 'middle';
+ctx.textAlign = 'center';
+
+showStart();
+</script>
+</body>
+</html>
