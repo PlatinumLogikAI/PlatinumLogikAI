@@ -1,0 +1,167 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  background-color: #0b0d12;
+  color: #eef2ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #121620, #07090d);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel {
+  background: #131722;
+  border: 1px solid #1c2333;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b8c0d9;
+}
+
+textarea,
+input,
+select {
+  width: 100%;
+  background: #0b0f18;
+  border: 1px solid #293043;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #eef2ff;
+  font-size: 0.95rem;
+}
+
+textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-row input {
+  width: auto;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+button {
+  background: linear-gradient(120deg, #5c6cff, #9a4bff);
+  border: none;
+  color: #f8f9ff;
+  padding: 12px 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+button.secondary {
+  background: #1d2436;
+  border: 1px solid #2b334a;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+}
+
+.tab {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #0c101b;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: #b8c0d9;
+}
+
+.tab.active {
+  border-color: #5c6cff;
+  color: #f2f5ff;
+}
+
+.shots {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.shot-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #0c111a;
+  border: 1px solid #232a3d;
+}
+
+.pill {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #20283b;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: #c7cff0;
+}
+
+.small {
+  font-size: 0.85rem;
+  color: #9aa3bd;
+}
+
+.world-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
