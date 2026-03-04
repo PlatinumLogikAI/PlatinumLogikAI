@@ -2,206 +2,956 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Crappy Turd</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Technology Circle of Trust</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-  body { margin: 0; font-family: sans-serif; text-align: center; background: #87cefa; }
-  canvas { background: #87cefa; display: block; margin: 0 auto; }
-  #overlay { position:absolute; top:0; left:0; width:100%; height:100%;
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
-    background:rgba(135,206,250,0.9); }
-  button { padding:10px 20px; margin:8px; font-size:16px; }
-  .title { font-family: 'Press Start 2P', monospace; font-size: 64px; color: #ffd700;
-    text-shadow: 4px 4px 0 #000; margin: 20px 0; }
+  :root {
+    --bg: #060a0f;
+    --surface: #0d1520;
+    --border: #1a2840;
+    --accent: #00e5ff;
+    --gold: #ffd700;
+    --red: #ff3b5c;
+    --green: #00e87a;
+    --amber: #ffaa00;
+    --text: #c8d8f0;
+    --muted: #4a6080;
+    --header-bg: #0a1830;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: auto;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    letter-spacing: 0.05em;
+    line-height: 0.9;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 32px 0;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+
+  /* Table wrapper */
+  .table-wrapper {
+    overflow-x: auto;
+    animation: fadeUp 0.8s 0.4s ease both;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1200px;
+  }
+
+  thead tr {
+    background: var(--header-bg);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 16px 14px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  th:hover { background: rgba(0,229,255,0.06); }
+  th::after { content: ' ⇅'; opacity: 0.3; font-size: 9px; }
+  th.sort-asc::after { content: ' ↑'; opacity: 1; }
+  th.sort-desc::after { content: ' ↓'; opacity: 1; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    animation: rowFade 0.4s ease both;
+  }
+
+  tbody tr:hover {
+    background: rgba(0,229,255,0.04);
+    cursor: pointer;
+  }
+
+  tbody tr.hidden { display: none; }
+
+  td {
+    padding: 14px 14px;
+    font-size: 12px;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+
+  /* Rank cell */
+  .rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--muted);
+    width: 40px;
+    text-align: center;
+  }
+
+  /* Leader cell */
+  .leader-cell { min-width: 160px; }
+  .leader-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 2px;
+  }
+  .leader-title {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Company */
+  .company-cell { min-width: 130px; }
+  .company-name {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .company-type {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Sphere tags */
+  .sphere-tags { display: flex; flex-wrap: wrap; gap: 4px; min-width: 180px; }
+  .tag {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 3px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .tag-social { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+  .tag-ai { background: rgba(138,43,226,0.15); color: #c084fc; border: 1px solid rgba(138,43,226,0.3); }
+  .tag-hardware { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.25); }
+  .tag-cloud { background: rgba(0,232,122,0.1); color: var(--green); border: 1px solid rgba(0,232,122,0.2); }
+  .tag-ecommerce { background: rgba(255,170,0,0.1); color: var(--amber); border: 1px solid rgba(255,170,0,0.25); }
+  .tag-ev { background: rgba(0,180,100,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .tag-space { background: rgba(100,149,237,0.15); color: #93c5fd; border: 1px solid rgba(147,197,253,0.3); }
+  .tag-search { background: rgba(255,99,71,0.15); color: #fca5a5; border: 1px solid rgba(252,165,165,0.3); }
+  .tag-gaming { background: rgba(236,72,153,0.15); color: #f0abfc; border: 1px solid rgba(240,171,252,0.3); }
+  .tag-chips { background: rgba(234,179,8,0.15); color: #fde047; border: 1px solid rgba(253,224,71,0.3); }
+  .tag-gov { background: rgba(248,113,113,0.15); color: #fca5a5; border: 1px solid rgba(252,165,165,0.4); }
+
+  /* Users */
+  .users-cell { min-width: 120px; }
+  .users-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.05em;
+  }
+  .users-label { font-size: 10px; color: var(--muted); }
+
+  /* Trust meter */
+  .trust-cell { min-width: 130px; }
+  .trust-bar-wrap {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+  .trust-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .trust-score {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .trust-label { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+  /* Tenure */
+  .tenure-cell { min-width: 100px; }
+  .tenure-years {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.05em;
+  }
+  .tenure-since { font-size: 10px; color: var(--muted); }
+
+  /* Net worth */
+  .worth-cell { min-width: 100px; }
+  .worth-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--gold);
+  }
+  .worth-label { font-size: 10px; color: var(--muted); }
+
+  /* Market cap */
+  .mcap-cell { min-width: 100px; }
+  .mcap-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    color: var(--green);
+  }
+
+  /* Notable controversy */
+  .notables { min-width: 200px; max-width: 240px; }
+  .notable-item {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 2px 0;
+    border-left: 2px solid var(--border);
+    padding-left: 8px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .notable-item.neg { border-left-color: var(--red); color: #f87171; }
+  .notable-item.pos { border-left-color: var(--green); color: #86efac; }
+
+  /* Trust level color helper */
+  .trust-high .trust-bar { background: var(--green); }
+  .trust-high .trust-score { color: var(--green); }
+  .trust-med .trust-bar { background: var(--amber); }
+  .trust-med .trust-score { color: var(--amber); }
+  .trust-low .trust-bar { background: var(--red); }
+  .trust-low .trust-score { color: var(--red); }
+
+  /* Users color */
+  .u-mega { color: var(--accent); }
+  .u-large { color: var(--green); }
+  .u-mid { color: var(--amber); }
+  .u-small { color: var(--muted); }
+
+  /* Footer legend */
+  .legend {
+    margin-top: 32px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--muted);
+    animation: fadeUp 0.6s 0.6s ease both;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .note {
+    margin-top: 20px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    line-height: 1.8;
+    opacity: 0.7;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rowFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Tooltip */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    background: #1a2840;
+    color: var(--text);
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    border: 1px solid var(--accent);
+    position: absolute;
+    z-index: 100;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
 </style>
 </head>
 <body>
-<div id="overlay"></div>
-<canvas id="game" width="400" height="600"></canvas>
+<div class="container">
+  <header>
+    <div class="eyebrow">2025–2026 Report</div>
+    <h1>The Technology<br>Circle of Trust</h1>
+    <p class="subtitle">Who holds the keys to the digital world — and whether we trust them with it. Ranked by sphere of influence, user reach, and public trust sentiment.</p>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num">~15B</div>
+      <div class="stat-label">Combined User Touchpoints</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">~30%</div>
+      <div class="stat-label">Americans Trust No Tech CEO</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">85%</div>
+      <div class="stat-label">Want CEO Personal Liability</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">$11T+</div>
+      <div class="stat-label">Combined Market Cap</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All Leaders</button>
+    <button class="filter-btn" data-filter="ai">AI Players</button>
+    <button class="filter-btn" data-filter="social">Social Sphere</button>
+    <button class="filter-btn" data-filter="hardware">Hardware</button>
+    <button class="filter-btn" data-filter="trust-high">High Trust</button>
+    <button class="filter-btn" data-filter="trust-low">Low Trust</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table id="trustTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Leader / Role</th>
+          <th>Company</th>
+          <th>Sphere of Influence</th>
+          <th>Key Products</th>
+          <th>Users Influenced</th>
+          <th>Trust Score</th>
+          <th>Tenure</th>
+          <th>Net Worth</th>
+          <th>Mkt Cap</th>
+          <th>Notable Events / Controversies</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> High Trust (&gt;50%)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> Mixed Trust (30–50%)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Low Trust (&lt;30%)</div>
+    <div class="legend-item" style="margin-left:auto; font-size:10px;">Click any column header to sort · Click row to expand</div>
+  </div>
+
+  <p class="note">
+    Sources: Edelman Trust Barometer 2025 · AllAboutCookies Big Tech Trust Survey · Digital Third Coast CEO Sentiment Survey ·
+    Forbes Billionaires 2025 · Company Q1 2025 Earnings Reports · Wikipedia · Built In · Statista.<br>
+    Trust scores are composite estimates based on multiple 2024–2025 public surveys. User figures represent global monthly active users or touchpoints across platforms. Market caps as of Q1 2026 estimates.
+  </p>
+</div>
+
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
-const GRAVITY = 0.25;
-const FLAP = -10;
-const PIPE_GAP = 200;
-const PIPE_WIDTH = 60;
-const PIPE_SPEED = 2;
-let frameId;
-let score = 0;
-let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
-const overlay = document.getElementById('overlay');
+const data = [
+  {
+    rank: 1,
+    name: "Elon Musk",
+    title: "Owner / CEO",
+    company: "X / Tesla / SpaceX / xAI",
+    companyType: "Social · EV · Aerospace · AI",
+    spheres: ["social","ev","space","ai","gov"],
+    products: "X (Twitter), Tesla, Starlink, Grok AI, DOGE",
+    users: "500M+",
+    userClass: "u-mega",
+    trustScore: 22,
+    trustClass: "trust-low",
+    trustLabel: "Most distrusted tech exec (42% dislike)",
+    tenureYears: "3 yrs (X)",
+    tenureSince: "2022 (X) / 2008 (Tesla CEO)",
+    netWorth: "$300B+",
+    marketCap: "$1.1T (Tesla)",
+    notables: [
+      { text: "Twitter/X acquisition & content moderation rollback", neg: true },
+      { text: "DOGE gov't advisory role — 83% of Americans concerned", neg: true },
+      { text: "Starlink critical infrastructure in 100+ countries", pos: true },
+      { text: "2/3 of Americans want less tech CEO gov't involvement", neg: true }
+    ],
+    filterTags: ["all","ai","social","trust-low"]
+  },
+  {
+    rank: 2,
+    name: "Mark Zuckerberg",
+    title: "Founder / CEO",
+    company: "Meta Platforms",
+    companyType: "Social Media · AR/VR · AI",
+    spheres: ["social","ai"],
+    products: "Facebook, Instagram, WhatsApp, Threads, Meta AI, Quest",
+    users: "3.98B",
+    userClass: "u-mega",
+    trustScore: 24,
+    trustClass: "trust-low",
+    trustLabel: "Lowest overall opinion among Americans",
+    tenureYears: "21 yrs",
+    tenureSince: "2004",
+    netWorth: "$230B+",
+    marketCap: "$1.9T",
+    notables: [
+      { text: "Cambridge Analytica scandal — 87M user data exposed", neg: true },
+      { text: "Congressional testimony on teen mental health harms", neg: true },
+      { text: "DEI rollback & fact-checking elimination (2025)", neg: true },
+      { text: "3.98B monthly users — largest digital reach on Earth", pos: true }
+    ],
+    filterTags: ["all","ai","social","trust-low"]
+  },
+  {
+    rank: 3,
+    name: "Tim Cook",
+    title: "CEO",
+    company: "Apple Inc.",
+    companyType: "Hardware · Software · Services",
+    spheres: ["hardware","ai"],
+    products: "iPhone, Mac, iPad, App Store, Apple Intelligence",
+    users: "2.2B+",
+    userClass: "u-mega",
+    trustScore: 55,
+    trustClass: "trust-med",
+    trustLabel: "Highest among Big Five CEOs",
+    tenureYears: "14 yrs",
+    tenureSince: "2011",
+    netWorth: "$2B+",
+    marketCap: "$3.3T",
+    notables: [
+      { text: "Apple controls 55% of US smartphone market", pos: true },
+      { text: "EU DMA fine of €500M (2025) for anticompetitive behavior", neg: true },
+      { text: "Privacy-first brand positioning vs. ad-based rivals", pos: true },
+      { text: "Slow AI rollout vs. competitors seen as strategic lag", neg: true }
+    ],
+    filterTags: ["all","hardware","trust-high"]
+  },
+  {
+    rank: 4,
+    name: "Satya Nadella",
+    title: "CEO",
+    company: "Microsoft",
+    companyType: "Cloud · Enterprise · AI",
+    spheres: ["cloud","ai"],
+    products: "Windows, Azure, Office 365, Copilot, GitHub, Xbox",
+    users: "1.5B+",
+    userClass: "u-mega",
+    trustScore: 60,
+    trustClass: "trust-high",
+    trustLabel: "Most trusted Big Tech CEO by employees",
+    tenureYears: "11 yrs",
+    tenureSince: "2014",
+    netWorth: "$1.5B+",
+    marketCap: "$3.0T",
+    notables: [
+      { text: "Microsoft controls 70% of global PC OS market", pos: true },
+      { text: "$13B OpenAI investment — led the enterprise AI race", pos: true },
+      { text: "DOJ/FTC AI dominance investigation (2024)", neg: true },
+      { text: "Revitalized company culture from 'know-it-all' to 'learn-it-all'", pos: true }
+    ],
+    filterTags: ["all","ai","trust-high"]
+  },
+  {
+    rank: 5,
+    name: "Sam Altman",
+    title: "CEO",
+    company: "OpenAI",
+    companyType: "Artificial Intelligence",
+    spheres: ["ai"],
+    products: "ChatGPT, GPT-4, Sora, DALL-E, API Platform",
+    users: "400M+",
+    userClass: "u-large",
+    trustScore: 35,
+    trustClass: "trust-med",
+    trustLabel: "40% of Americans unfamiliar; split on trust",
+    tenureYears: "10 yrs",
+    tenureSince: "2015 (brief ouster Nov 2023)",
+    netWorth: "$2.8B+",
+    marketCap: "$300B+ (private)",
+    notables: [
+      { text: "Board ouster and reinstatement (Nov 2023) — governance crisis", neg: true },
+      { text: "ChatGPT fastest product to 100M users in history", pos: true },
+      { text: "DOJ/FTC AI monopoly investigation (2024)", neg: true },
+      { text: "Advocates for AI safety while accelerating deployment — critics call this contradictory", neg: true }
+    ],
+    filterTags: ["all","ai","trust-low"]
+  },
+  {
+    rank: 6,
+    name: "Sundar Pichai",
+    title: "CEO",
+    company: "Alphabet / Google",
+    companyType: "Search · Cloud · AI · Advertising",
+    spheres: ["search","cloud","ai"],
+    products: "Google Search, YouTube, Chrome, Android, Gemini AI, Maps",
+    users: "4.0B+",
+    userClass: "u-mega",
+    trustScore: 42,
+    trustClass: "trust-med",
+    trustLabel: "48% of Americans don't know him by name",
+    tenureYears: "10 yrs",
+    tenureSince: "2015",
+    netWorth: "$1.3B+",
+    marketCap: "$2.1T",
+    notables: [
+      { text: "Federal court ruled Google holds illegal search monopoly (2024)", neg: true },
+      { text: "Second monopoly ruling: ad technology (April 2025)", neg: true },
+      { text: "92% of all global search queries run through Google", pos: true },
+      { text: "Gemini AI misstep (image generation bias controversy, 2024)", neg: true }
+    ],
+    filterTags: ["all","ai","trust-low"]
+  },
+  {
+    rank: 7,
+    name: "Jensen Huang",
+    title: "Founder / CEO",
+    company: "NVIDIA",
+    companyType: "Semiconductors · AI Infrastructure",
+    spheres: ["chips","ai"],
+    products: "H100/B200 GPUs, CUDA Platform, DGX Systems, NIM",
+    users: "Enterprise-scale",
+    userClass: "u-mid",
+    trustScore: 72,
+    trustClass: "trust-high",
+    trustLabel: "96% employee approval — highest rated tech CEO",
+    tenureYears: "32 yrs",
+    tenureSince: "1993",
+    netWorth: "$120B+",
+    marketCap: "$3.3T",
+    notables: [
+      { text: "NVIDIA supplies 80%+ of AI training chips globally", pos: true },
+      { text: "Stock up 2000%+ over 5 years — employee trust is near universal", pos: true },
+      { text: "DOJ/FTC AI investigation included NVIDIA (2024)", neg: true },
+      { text: "Predicted the AI compute boom over a decade early", pos: true }
+    ],
+    filterTags: ["all","ai","hardware","trust-high"]
+  },
+  {
+    rank: 8,
+    name: "Andy Jassy",
+    title: "CEO",
+    company: "Amazon",
+    companyType: "E-Commerce · Cloud · AI · Logistics",
+    spheres: ["ecommerce","cloud","ai"],
+    products: "Amazon.com, AWS, Alexa, Prime, Kindle, Twitch",
+    users: "1.0B+",
+    userClass: "u-mega",
+    trustScore: 48,
+    trustClass: "trust-med",
+    trustLabel: "Amazon brand trusted; Jassy less personally known",
+    tenureYears: "4 yrs",
+    tenureSince: "2021",
+    netWorth: "$600M+",
+    marketCap: "$2.3T",
+    notables: [
+      { text: "AWS holds 31% of global cloud infrastructure market", pos: true },
+      { text: "39% of US e-commerce — delivers 4.75B+ packages/year", pos: true },
+      { text: "Return-to-office mandate sparked widespread employee backlash (2023)", neg: true },
+      { text: "Labor organizing battles at warehouses across US", neg: true }
+    ],
+    filterTags: ["all","ai","trust-low"]
+  },
+  {
+    rank: 9,
+    name: "Lisa Su",
+    title: "CEO",
+    company: "AMD",
+    companyType: "Semiconductors · AI Chips",
+    spheres: ["chips","ai"],
+    products: "Ryzen CPUs, Radeon GPUs, MI300X AI Accelerators",
+    users: "Hundreds of millions (devices)",
+    userClass: "u-mid",
+    trustScore: 68,
+    trustClass: "trust-high",
+    trustLabel: "79% employee approval — top-rated female tech CEO",
+    tenureYears: "11 yrs",
+    tenureSince: "2014",
+    netWorth: "$1.5B+",
+    marketCap: "$200B",
+    notables: [
+      { text: "Rescued AMD from near-bankruptcy; market cap up 40x under her tenure", pos: true },
+      { text: "MI300X directly challenging NVIDIA's AI chip monopoly", pos: true },
+      { text: "Only major female CEO among semiconductor giants", pos: true },
+      { text: "Stepped down from Cisco board as AMD AI focus intensified", pos: true }
+    ],
+    filterTags: ["all","ai","hardware","trust-high"]
+  },
+  {
+    rank: 10,
+    name: "Dario Amodei",
+    title: "CEO",
+    company: "Anthropic",
+    companyType: "AI Safety · Foundation Models",
+    spheres: ["ai"],
+    products: "Claude AI, Claude API, Claude Code",
+    users: "~50M+",
+    userClass: "u-small",
+    trustScore: 52,
+    trustClass: "trust-med",
+    trustLabel: "Safety-focused positioning earns relative credibility",
+    tenureYears: "3 yrs",
+    tenureSince: "2021",
+    netWorth: "$1B+",
+    marketCap: "$61B (private)",
+    notables: [
+      { text: "Co-founded Anthropic after leaving OpenAI over safety concerns", pos: true },
+      { text: "Constitutional AI approach cited as industry standard", pos: true },
+      { text: "Amazon invested $4B — one of largest AI deals", pos: true },
+      { text: "Critics question whether safety mission scales with commercialization", neg: true }
+    ],
+    filterTags: ["all","ai","trust-high"]
+  },
+  {
+    rank: 11,
+    name: "Shou Zi Chew",
+    title: "CEO",
+    company: "TikTok / ByteDance",
+    companyType: "Social Video · AI · Entertainment",
+    spheres: ["social","ai"],
+    products: "TikTok, CapCut, Lemon8",
+    users: "1.7B+",
+    userClass: "u-mega",
+    trustScore: 21,
+    trustClass: "trust-low",
+    trustLabel: "Least trusted platform brand; national security concerns",
+    tenureYears: "4 yrs",
+    tenureSince: "2021",
+    netWorth: "$1B+",
+    marketCap: "$220B (ByteDance, private)",
+    notables: [
+      { text: "US Congressional hearings on Chinese data access (2023)", neg: true },
+      { text: "US ban/sale law enacted — partial compliance ongoing (2025)", neg: true },
+      { text: "#1 app for Gen Z globally; 170M US users", pos: true },
+      { text: "Algorithm accused of amplifying addictive, harmful content", neg: true }
+    ],
+    filterTags: ["all","social","trust-low"]
+  },
+  {
+    rank: 12,
+    name: "Bill Gates",
+    title: "Co-Founder / Philanthropist",
+    company: "Microsoft / Bill & Melinda Gates Foundation",
+    companyType: "Philanthropy · Global Health · Tech",
+    spheres: ["cloud","ai"],
+    products: "Windows legacy, Gates Foundation initiatives, Breakthrough Energy",
+    users: "Global health reach — 1B+",
+    userClass: "u-large",
+    trustScore: 62,
+    trustClass: "trust-high",
+    trustLabel: "25% of Americans named him most trustworthy tech figure",
+    tenureYears: "~30 yrs (Foundation)",
+    tenureSince: "2000 (Foundation) / 1975 (MSFT co-founder)",
+    netWorth: "$108B+",
+    marketCap: "N/A (non-exec)",
+    notables: [
+      { text: "Gates Foundation committed $70B+ to global health & development", pos: true },
+      { text: "Epstein association damaged public reputation (2019–2023)", neg: true },
+      { text: "COVID vaccine distribution funding credited by global health orgs", pos: true },
+      { text: "Personal life controversies reduced trust among conservatives", neg: true }
+    ],
+    filterTags: ["all","trust-high"]
+  },
+  {
+    rank: 13,
+    name: "Reed Hastings / Ted Sarandos",
+    title: "Co-CEOs (Sarandos sole CEO 2023)",
+    company: "Netflix",
+    companyType: "Streaming · Content · Entertainment",
+    spheres: ["social"],
+    products: "Netflix Streaming, Netflix Games, Original Content",
+    users: "302M+",
+    userClass: "u-large",
+    trustScore: 50,
+    trustClass: "trust-med",
+    trustLabel: "Brand trusted; Sarandos less polarizing than peers",
+    tenureYears: "27 yrs (Netflix founded)",
+    tenureSince: "1997 (Hastings) / 2020 (Sarandos as co-CEO)",
+    netWorth: "$5B+ (Hastings)",
+    marketCap: "$420B",
+    notables: [
+      { text: "Pioneered streaming, killed Blockbuster's model entirely", pos: true },
+      { text: "Password sharing crackdown added 19M subscribers in 2023", pos: true },
+      { text: "Dave Chappelle special sparked internal employee revolt (2021)", neg: true },
+      { text: "Ad-supported tier added to access price-sensitive users", pos: true }
+    ],
+    filterTags: ["all","social","trust-high"]
+  },
+  {
+    rank: 14,
+    name: "Jeff Bezos",
+    title: "Founder / Exec Chairman",
+    company: "Amazon / Blue Origin",
+    companyType: "E-Commerce · Aerospace · Media",
+    spheres: ["ecommerce","space","cloud"],
+    products: "Amazon.com, Blue Origin, Washington Post, AWS (founder)",
+    users: "1B+ (Amazon ecosystem)",
+    userClass: "u-mega",
+    trustScore: 32,
+    trustClass: "trust-low",
+    trustLabel: "High name recognition; low personal trust scores",
+    tenureYears: "30 yrs (founder)",
+    tenureSince: "1994",
+    netWorth: "$230B+",
+    marketCap: "$2.3T (Amazon)",
+    notables: [
+      { text: "Owns Washington Post — accused of editorial conflicts of interest", neg: true },
+      { text: "Labor practices at Amazon warehouses under sustained criticism", neg: true },
+      { text: "Blue Origin New Shepard commercial spaceflight milestone", pos: true },
+      { text: "Amazon Prime locks in ~200M paying subscribers globally", pos: true }
+    ],
+    filterTags: ["all","trust-low"]
+  },
+  {
+    rank: 15,
+    name: "Jack Dorsey",
+    title: "Co-Founder / CEO",
+    company: "Block (Square)",
+    companyType: "Fintech · Payments · Bitcoin",
+    spheres: ["social","ai"],
+    products: "Cash App, Square POS, Tidal, Bitkey (Bitcoin wallet)",
+    users: "57M+ (Cash App MAU)",
+    userClass: "u-mid",
+    trustScore: 38,
+    trustClass: "trust-med",
+    trustLabel: "Seen as principled but inconsistent; split public opinion",
+    tenureYears: "12 yrs (Block CEO)",
+    tenureSince: "2013 (Square/Block)",
+    netWorth: "$5.5B+",
+    marketCap: "$40B",
+    notables: [
+      { text: "Left Twitter amid Musk controversy; later criticized Musk publicly", neg: true },
+      { text: "Vocal Bitcoin maximalist — removed Blue Sky funding over censorship concerns", neg: true },
+      { text: "Cash App gave 57M Americans accessible banking/payment tools", pos: true },
+      { text: "Praised open protocol development (AT Protocol / Nostr)", pos: true }
+    ],
+    filterTags: ["all","social","trust-low"]
+  }
+];
 
-class Poo {
-  constructor() {
-    this.x = WIDTH / 4;
-    this.y = HEIGHT / 2;
-    this.vel = 0;
-    this.size = 48;
-    this.blinkTimer = Math.random() * 200 + 100;
-    this.blinkFrames = 0;
-  }
-  flap() {
-    this.vel = FLAP;
-  }
-  nudgeUp() {
-    // small upward boost for finer control
-    this.vel += FLAP / 2;
-  }
-  nudgeDown() {
-    // small downward push for finer control
-    this.vel -= FLAP / 2;
-  }
-  blink() {
-    this.blinkFrames = 5;
-  }
-  update() {
-    this.vel += GRAVITY;
-    this.y += this.vel;
-    if (this.y < 0) { this.y = 0; this.vel = 0; }
-    if (this.y > HEIGHT) { this.y = HEIGHT; this.vel = 0; }
-    if (this.blinkTimer <= 0) {
-      if (this.blinkFrames === 0) {
-        this.blinkFrames = 5;
-        this.blinkTimer = Math.random() * 200 + 100;
-      }
-    } else {
-      this.blinkTimer--;
-    }
-    if (this.blinkFrames > 0) {
-      this.blinkFrames--;
-    }
-  }
-  draw() {
-    ctx.font = `${this.size}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('\uD83D\uDCA9', this.x, this.y);
-    if (this.blinkFrames > 0) {
-      ctx.fillStyle = '#8b4513';
-      const w = this.size;
-      const h = this.size;
-      ctx.fillRect(this.x - w * 0.22, this.y - h * 0.28, w * 0.15, h * 0.05);
-      ctx.fillRect(this.x + w * 0.07, this.y - h * 0.28, w * 0.15, h * 0.05);
-    }
-  }
-  get rect() {
-    return {x: this.x - this.size/2, y: this.y - this.size/2, w: this.size, h: this.size};
-  }
-}
-
-class Pipe {
-  constructor(x) {
-    this.x = x;
-    this.top = Math.random() * (HEIGHT - PIPE_GAP - 100) + 50;
-    this.passed = false;
-  }
-  update() { this.x -= PIPE_SPEED; }
-  draw() {
-    ctx.fillStyle = 'green';
-    ctx.fillRect(this.x, 0, PIPE_WIDTH, this.top);
-    ctx.fillRect(this.x, this.top + PIPE_GAP, PIPE_WIDTH, HEIGHT - (this.top + PIPE_GAP));
-  }
-  offscreen() { return this.x + PIPE_WIDTH < 0; }
-  get topRect() { return {x: this.x, y: 0, w: PIPE_WIDTH, h: this.top}; }
-  get bottomRect() { return {x: this.x, y: this.top + PIPE_GAP, w: PIPE_WIDTH, h: HEIGHT - (this.top + PIPE_GAP)}; }
-}
-
-const poo = new Poo();
-let pipes;
-
-function resetGame() {
-  score = 0;
-  poo.y = HEIGHT / 2;
-  poo.vel = 0;
-  pipes = [new Pipe(WIDTH + 600)];
-}
-
-function rectsCollide(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-function showStart() {
-  overlay.innerHTML = `<h1 class="title">Crappy Turd</h1><p>Press Space or click to flap.</p><p>High Score: ${highScore}</p><button id="startBtn">Start</button>`;
-  overlay.style.display = 'flex';
-  document.getElementById('startBtn').onclick = () => {
-    overlay.style.display = 'none';
-    resetGame();
-    gameLoop();
+function renderSpheres(spheres) {
+  const classMap = {
+    social: 'tag-social', ai: 'tag-ai', hardware: 'tag-hardware',
+    cloud: 'tag-cloud', ecommerce: 'tag-ecommerce', ev: 'tag-ev',
+    space: 'tag-space', search: 'tag-search', gaming: 'tag-gaming',
+    chips: 'tag-chips', gov: 'tag-gov'
   };
-}
-
-function showGameOver() {
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('ct_high_score', highScore);
-  }
-  overlay.innerHTML = `<p>Game Over! Score: ${score}</p><p>High Score: ${highScore}</p><button id="restartBtn">Restart</button><button id="quitBtn">Quit</button>`;
-  overlay.style.display = 'flex';
-  document.getElementById('restartBtn').onclick = () => {
-    overlay.style.display = 'none';
-    resetGame();
-    gameLoop();
+  const labelMap = {
+    social: 'Social', ai: 'AI', hardware: 'Hardware',
+    cloud: 'Cloud', ecommerce: 'E-Comm', ev: 'EVs',
+    space: 'Space', search: 'Search', gaming: 'Gaming',
+    chips: 'Chips', gov: 'Gov\'t'
   };
-  document.getElementById('quitBtn').onclick = showStart;
+  return spheres.map(s => `<span class="tag ${classMap[s] || ''}">${labelMap[s] || s}</span>`).join('');
 }
 
-function gameLoop() {
-  ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  poo.update();
-  if (pipes[pipes.length - 1].x < WIDTH - 250) {
-    pipes.push(new Pipe(WIDTH + 350));
-  }
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    const p = pipes[i];
-    p.update();
-    p.draw();
-    if (p.offscreen()) pipes.splice(i,1);
-    if (!p.passed && p.x + PIPE_WIDTH < poo.x) {
-      p.passed = true;
-      score++;
-      poo.blink();
-    }
-    if (rectsCollide(poo.rect, p.topRect) || rectsCollide(poo.rect, p.bottomRect)) {
-      return endGame();
-    }
-  }
-  poo.draw();
-  ctx.fillStyle = 'black';
-  ctx.font = '24px sans-serif';
-  ctx.fillText('Score: ' + score, 50, 30);
-  frameId = requestAnimationFrame(gameLoop);
+function renderRow(d, i) {
+  const notablesHtml = d.notables.map(n =>
+    `<div class="notable-item ${n.neg ? 'neg' : 'pos'}">${n.text}</div>`
+  ).join('');
+
+  const trustWidth = Math.min(100, d.trustScore);
+
+  return `<tr data-filter='${JSON.stringify(d.filterTags)}' style="animation-delay:${i * 0.05}s">
+    <td class="rank">${d.rank}</td>
+    <td class="leader-cell">
+      <div class="leader-name">${d.name}</div>
+      <div class="leader-title">${d.title}</div>
+    </td>
+    <td class="company-cell">
+      <div class="company-name">${d.company}</div>
+      <div class="company-type">${d.companyType}</div>
+    </td>
+    <td><div class="sphere-tags">${renderSpheres(d.spheres)}</div></td>
+    <td style="font-size:11px;min-width:160px;color:var(--muted)">${d.products}</td>
+    <td class="users-cell">
+      <div class="users-big ${d.userClass}">${d.users}</div>
+      <div class="users-label">monthly users</div>
+    </td>
+    <td class="trust-cell ${d.trustClass}">
+      <div class="trust-bar-wrap"><div class="trust-bar" style="width:${trustWidth}%"></div></div>
+      <div class="trust-score">${d.trustScore}% Trust</div>
+      <div class="trust-label">${d.trustLabel}</div>
+    </td>
+    <td class="tenure-cell">
+      <div class="tenure-years">${d.tenureYears}</div>
+      <div class="tenure-since">${d.tenureSince}</div>
+    </td>
+    <td class="worth-cell">
+      <div class="worth-big">${d.netWorth}</div>
+      <div class="worth-label">Net Worth</div>
+    </td>
+    <td class="mcap-cell">
+      <div class="mcap-big">${d.marketCap}</div>
+      <div class="worth-label">Market Cap</div>
+    </td>
+    <td class="notables">${notablesHtml}</td>
+  </tr>`;
 }
 
-function endGame() {
-  cancelAnimationFrame(frameId);
-  showGameOver();
+function buildTable(rows) {
+  document.getElementById('tableBody').innerHTML = rows.map((d, i) => renderRow(d, i)).join('');
 }
 
-window.addEventListener('keydown', (e) => {
-  if (overlay.style.display !== 'none') {
-    if (e.code === 'Space') {
-      const restart = document.getElementById('restartBtn');
-      const start = document.getElementById('startBtn');
-      if (restart) restart.click();
-      else if (start) start.click();
-    }
-    return;
-  }
-  if (e.code === 'Space') {
-    poo.flap();
-  } else if (e.code === 'ArrowUp') {
-    poo.nudgeUp();
-  } else if (e.code === 'ArrowDown') {
-    poo.nudgeDown();
-  }
+buildTable(data);
+
+// Filters
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('#tableBody tr').forEach(tr => {
+      const tags = JSON.parse(tr.dataset.filter || '[]');
+      tr.classList.toggle('hidden', !tags.includes(filter));
+    });
+  });
 });
-canvas.addEventListener('click', () => { if (overlay.style.display === 'none') poo.flap(); });
 
-ctx.textBaseline = 'middle';
-ctx.textAlign = 'center';
-
-showStart();
+// Sort
+let sortCol = -1, sortDir = 1;
+document.querySelectorAll('th').forEach((th, idx) => {
+  th.addEventListener('click', () => {
+    if (sortCol === idx) sortDir *= -1;
+    else { sortCol = idx; sortDir = 1; }
+    document.querySelectorAll('th').forEach(t => { t.classList.remove('sort-asc','sort-desc'); });
+    th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+    const sortable = [...data];
+    const keys = ['rank','name','company','','','users','trustScore','tenureYears','netWorth','marketCap',''];
+    const key = keys[idx];
+    if (key) {
+      sortable.sort((a,b) => {
+        let av = a[key], bv = b[key];
+        if (typeof av === 'string') av = av.replace(/[^0-9.]/g,'') * 1 || av.toLowerCase();
+        if (typeof bv === 'string') bv = bv.replace(/[^0-9.]/g,'') * 1 || bv.toLowerCase();
+        return (av < bv ? -1 : av > bv ? 1 : 0) * sortDir;
+      });
+      buildTable(sortable);
+    }
+  });
+});
 </script>
 </body>
 </html>
