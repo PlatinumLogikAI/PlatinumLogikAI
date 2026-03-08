@@ -1,40 +1,51 @@
-# 👋 Hey there, Welcome to my corner of creation!
+# PromptMagic CinemaPro Sequencer
 
-## 🎯 About Me
-- 🖌️ Artist and visual creator, blending tech and art into futuristic expressions.
-- 💻 IT professional with a passion for building, solving, and *figuring it out*.
-- 🔥 Lifelong learner, self-taught powerhouse, and early adopter of game-changing tech.
-- 🤔 Philosopher at heart — always seeking meaning, connection, and the next "Eureka!" moment.
+PromptMagic CinemaPro Sequencer is a full-stack Next.js app that turns natural-language scene ideas into cinematic AI-video prompts, including optional multi-shot timelines and reusable world bible consistency.
 
-## 🌟 What Drives Me
-> **"Encapsulating innovative ideas that elevate understanding."**
+## Features
 
-I live at the intersection of **music**, **tech**, **art**, **nature**, and **innovation** — a place where curiosity never sleeps and creativity never settles.
+- **Mode 1 – Single Shot**: one polished prompt string.
+- **Mode 2 – Sequence**: 3–6 shot-style JSON output parsed into a shot list + raw prompt text.
+- **Mode 3 – World Bible**: save style/world constraints and reuse them across generations.
+- Dark-themed React UI with prompt controls, results tabs, and copy-all behavior.
+- Persistence for **world bibles** and **recent prompt sessions** using SQLite.
 
-## 🛠️ Current Focus
-- Launching and expanding **Platinum Logik Enterprises**: A creative ecosystem blending music, art, innovation, and transformative storytelling.
-- Building projects using **AI**, **automation**, and **visual storytelling** tools.
-- Creating repositories to organize creative assets, musical works, AI projects, and unique frameworks for innovation.
+## Setup
 
-## 💡 Fun Facts
-- Grew up inside a radio station — surrounded by music from every era and genre.
-- I coined the term **"Mega-Niche"**: a niche so expansive it births endless other niches.
-- Humor is my secret weapon. Creativity is my second language. Growth is my daily mission.
-- When in doubt, I remix reality.
+### 1) Install dependencies
 
-## 📫 Let's Connect
-- Feel free to explore, collaborate, or just say hey!
-- New ideas? Unique projects? Experimental collabs? I'm here for it.
+```bash
+npm install
+```
 
----
+### 2) Configure environment variables
 
-🔔 _PS: If you see the name "TheMatic" pop up, that's me too. Different hat, same brilliant mind._
+Create `.env` in project root:
 
-## 🎮 Crappy Turd Game
-A lighthearted Flappy Bird parody featuring the Poo emoji.
+```bash
+OPENAI_API_KEY=your_openai_api_key
+DATABASE_URL=file:./promptmagic.db
+```
 
-- **Python version:** requires [pygame](https://www.pygame.org/); install with `pip install -r requirements.txt` then run `python crappy_turd.py`
-- 🚀 [Click here to launch Crappy Turd!](https://platinumlogikai.github.io/PlatinumLogikAI/index.html)
-- **Controls:** Space or click to flap. Use the Up/Down arrows for small nudges.
-- **High Score:** The game remembers your best score and shows it after each round. Press Space on the game-over screen to quickly restart.
-- **Blinking:** The poo now blinks whenever you score by clearing a pipe.
+### 3) Run the development server
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Tests
+
+```bash
+npm run test
+```
+
+## Implementation notes
+
+- The system prompt is intentionally a placeholder and can be customized in `lib/prompt.ts`.
+- API routes:
+  - `POST /api/generate`
+  - `GET/POST /api/worlds`
+  - `GET /api/sessions`
+- SQLite tables are auto-created at runtime by `lib/store.ts`.
