@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { store } from "@/lib/store";
 
 const worldSchema = z.object({
   name: z.string().min(1),
@@ -11,17 +11,19 @@ const worldSchema = z.object({
 });
 
 export async function GET() {
-  const worlds = await prisma.worldBible.findMany({
-    orderBy: { createdAt: "desc" }
-  });
-  return NextResponse.json(worlds);
+  return NextResponse.json(store.listWorlds());
 }
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const input = worldSchema.parse(body);
-  const world = await prisma.worldBible.create({
-    data: input
-  });
-  return NextResponse.json(world);
+  const parsed = worldSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid world payload.", detail: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  return NextResponse.json(store.upsertWorld(parsed.data));
 }

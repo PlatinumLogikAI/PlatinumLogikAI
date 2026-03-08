@@ -3,7 +3,5 @@ node_modules
 dist
 .env
 .env.local
-dev.db
-dev.db-journal
-prisma/dev.db
-prisma/dev.db-journal
+*.db
+*.db-journal

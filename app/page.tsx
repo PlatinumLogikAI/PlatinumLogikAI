@@ -1,18 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PromptResponse, Shot, WorldSettings } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import { PromptResponse, PromptSession, Shot, WorldRecord, WorldSettings } from "@/lib/types";
 
 type ModeOption = "single" | "sequence" | "world";
-
-interface WorldRecord extends WorldSettings {
-  id: string;
-}
 
 const modeLabels: Record<ModeOption, string> = {
   single: "Single Shot",
   sequence: "Sequence",
   world: "World Bible"
+};
+
+const emptyWorld: WorldSettings = {
+  name: "",
+  palette: "",
+  era: "",
+  themes: "",
+  styleNotes: ""
 };
 
 export default function HomePage() {
@@ -25,37 +29,41 @@ export default function HomePage() {
   const [epicScale, setEpicScale] = useState(true);
   const [keepCharacters, setKeepCharacters] = useState(false);
   const [worlds, setWorlds] = useState<WorldRecord[]>([]);
+  const [sessions, setSessions] = useState<PromptSession[]>([]);
   const [selectedWorldId, setSelectedWorldId] = useState("");
-  const [worldSettings, setWorldSettings] = useState<WorldSettings>({
-    name: "",
-    palette: "",
-    era: "",
-    themes: "",
-    styleNotes: ""
-  });
+  const [worldSettings, setWorldSettings] = useState<WorldSettings>(emptyWorld);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"raw" | "shots">("raw");
   const [rawPrompt, setRawPrompt] = useState("");
   const [shots, setShots] = useState<Shot[]>([]);
   const [status, setStatus] = useState("");
 
+  const selectedWorld = useMemo(
+    () => worlds.find((world) => world.id === selectedWorldId),
+    [worlds, selectedWorldId]
+  );
+
   useEffect(() => {
     void loadWorlds();
+    void loadSessions();
   }, []);
 
   const loadWorlds = async () => {
     const response = await fetch("/api/worlds");
-    if (response.ok) {
-      const data = await response.json();
-      setWorlds(data);
-    }
+    if (!response.ok) return;
+    setWorlds(await response.json());
+  };
+
+  const loadSessions = async () => {
+    const response = await fetch("/api/sessions");
+    if (!response.ok) return;
+    setSessions(await response.json());
   };
 
   const handleGenerate = async () => {
     setLoading(true);
     setStatus("");
-    setRawPrompt("");
-    setShots([]);
+
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -69,21 +77,25 @@ export default function HomePage() {
           epicScale,
           keepCharacters,
           worldId: selectedWorldId || undefined,
-          worldSettings: selectedWorldId ? undefined : worldSettings,
+          worldSettings: mode === "world" && !selectedWorldId ? worldSettings : undefined,
           referenceImageUrl: referenceImageUrl || undefined
         })
       });
+
+      const data = (await response.json()) as PromptResponse & { error?: string };
+
       if (!response.ok) {
-        const errorData = await response.json();
-        setStatus(errorData.error ?? "Generation failed.");
+        setStatus(data.error ?? "Generation failed.");
         return;
       }
-      const data = (await response.json()) as PromptResponse;
+
       setRawPrompt(data.rawPrompt);
       setShots(data.shots ?? []);
-      setActiveTab(data.shots ? "shots" : "raw");
+      setActiveTab(data.shots && data.shots.length > 0 ? "shots" : "raw");
+      setStatus("Generated successfully.");
+      await loadSessions();
     } catch (error) {
-      setStatus(String(error));
+      setStatus(error instanceof Error ? error.message : "Unexpected error.");
     } finally {
       setLoading(false);
     }
@@ -91,41 +103,37 @@ export default function HomePage() {
 
   const handleSaveWorld = async () => {
     setStatus("");
-    if (!worldSettings.name.trim()) {
-      setStatus("Please name your world bible.");
-      return;
-    }
     const response = await fetch("/api/worlds", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(worldSettings)
     });
+
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      setStatus(errorData.error ?? "Failed to save world.");
+      setStatus(data.error ?? "Failed to save world bible.");
       return;
     }
-    await loadWorlds();
+
     setStatus("World bible saved.");
+    setWorldSettings(emptyWorld);
+    await loadWorlds();
+    setSelectedWorldId(data.id);
   };
 
-  const handleCopy = async () => {
+  const handleCopyAll = async () => {
     if (!rawPrompt) return;
     await navigator.clipboard.writeText(rawPrompt);
-    setStatus("Copied prompt to clipboard.");
+    setStatus("Prompt copied.");
   };
-
-  const selectedWorld = worlds.find((world) => world.id === selectedWorldId);
 
   return (
     <main>
       <div className="app-shell">
         <header>
           <h1>PromptMagic CinemaPro Sequencer</h1>
-          <p className="small">
-            Craft motion-rich AI video prompts with shot-by-shot breakdowns and world
-            continuity.
-          </p>
+          <p className="small">Generate motion-forward cinematic prompts for AI video tools.</p>
         </header>
 
         <section className="panel grid">
@@ -134,30 +142,32 @@ export default function HomePage() {
               <label htmlFor="baseIdea">Describe your scene</label>
               <textarea
                 id="baseIdea"
-                placeholder="Neon-lit market chase through rain-soaked alleys..."
+                placeholder="A neon rooftop chase during a thunderstorm..."
                 value={baseIdea}
                 onChange={(event) => setBaseIdea(event.target.value)}
               />
             </div>
+
             <div className="input-group">
-              <label htmlFor="referenceUrl">Reference image URL (optional)</label>
+              <label htmlFor="referenceImageUrl">Reference image URL (optional)</label>
               <input
-                id="referenceUrl"
+                id="referenceImageUrl"
                 value={referenceImageUrl}
                 onChange={(event) => setReferenceImageUrl(event.target.value)}
-                placeholder="https://example.com/reference.jpg"
+                placeholder="https://..."
               />
             </div>
+
             <div className="actions">
-              <button onClick={handleGenerate} disabled={loading || !baseIdea}>
-                {loading ? "Generating..." : "Generate sequence"}
+              <button disabled={loading || !baseIdea.trim()} onClick={handleGenerate}>
+                {loading ? "Generating..." : `Generate ${modeLabels[mode]}`}
               </button>
               {mode === "world" && (
                 <button className="secondary" onClick={handleSaveWorld}>
                   Save world bible
                 </button>
               )}
-              <button className="secondary" onClick={handleCopy} disabled={!rawPrompt}>
+              <button className="secondary" onClick={handleCopyAll} disabled={!rawPrompt}>
                 Copy all
               </button>
             </div>
@@ -167,11 +177,7 @@ export default function HomePage() {
           <div>
             <div className="input-group">
               <label htmlFor="mode">Mode</label>
-              <select
-                id="mode"
-                value={mode}
-                onChange={(event) => setMode(event.target.value as ModeOption)}
-              >
+              <select id="mode" value={mode} onChange={(event) => setMode(event.target.value as ModeOption)}>
                 {Object.entries(modeLabels).map(([value, label]) => (
                   <option key={value} value={value}>
                     {label}
@@ -179,10 +185,11 @@ export default function HomePage() {
                 ))}
               </select>
             </div>
+
             <div className="input-group">
-              <label htmlFor="generator">Target generator</label>
+              <label htmlFor="targetGenerator">Target generator</label>
               <select
-                id="generator"
+                id="targetGenerator"
                 value={targetGenerator}
                 onChange={(event) => setTargetGenerator(event.target.value)}
               >
@@ -191,18 +198,16 @@ export default function HomePage() {
                 <option value="Other">Other</option>
               </select>
             </div>
+
             <div className="input-group">
               <label htmlFor="duration">Duration</label>
-              <select
-                id="duration"
-                value={duration}
-                onChange={(event) => setDuration(event.target.value)}
-              >
+              <select id="duration" value={duration} onChange={(event) => setDuration(event.target.value)}>
                 <option value="6s">6s</option>
                 <option value="10s">10s</option>
                 <option value="15s">15s</option>
               </select>
             </div>
+
             <div className="input-group">
               <label htmlFor="visualStyle">Visual style</label>
               <input
@@ -211,26 +216,21 @@ export default function HomePage() {
                 onChange={(event) => setVisualStyle(event.target.value)}
               />
             </div>
+
             <div className="input-group toggle-row">
-              <input
-                id="epicScale"
-                type="checkbox"
-                checked={epicScale}
-                onChange={(event) => setEpicScale(event.target.checked)}
-              />
-              <label htmlFor="epicScale">Epic scale</label>
+              <input type="checkbox" checked={epicScale} onChange={(event) => setEpicScale(event.target.checked)} />
+              <label>Epic scale</label>
             </div>
+
             <div className="input-group toggle-row">
               <input
-                id="keepCharacters"
                 type="checkbox"
                 checked={keepCharacters}
                 onChange={(event) => setKeepCharacters(event.target.checked)}
               />
-              <label htmlFor="keepCharacters">
-                Keep characters consistent with last project
-              </label>
+              <label>Keep characters consistent with last project</label>
             </div>
+
             <div className="input-group">
               <label htmlFor="worldSelect">Apply world bible</label>
               <select
@@ -247,66 +247,30 @@ export default function HomePage() {
               </select>
               {selectedWorld && (
                 <p className="small">
-                  Using {selectedWorld.name}: {selectedWorld.palette}, {selectedWorld.era},
-                  {selectedWorld.themes}
+                  Using {selectedWorld.name}: {selectedWorld.palette} • {selectedWorld.era} • {selectedWorld.themes}
                 </p>
               )}
             </div>
+
             {mode === "world" && (
               <div className="panel world-grid">
-                <div className="input-group">
-                  <label htmlFor="worldName">World name</label>
-                  <input
-                    id="worldName"
-                    value={worldSettings.name}
-                    onChange={(event) =>
-                      setWorldSettings({ ...worldSettings, name: event.target.value })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="worldPalette">Color palette</label>
-                  <input
-                    id="worldPalette"
-                    value={worldSettings.palette}
-                    onChange={(event) =>
-                      setWorldSettings({ ...worldSettings, palette: event.target.value })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="worldEra">Era / tech level</label>
-                  <input
-                    id="worldEra"
-                    value={worldSettings.era}
-                    onChange={(event) =>
-                      setWorldSettings({ ...worldSettings, era: event.target.value })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="worldThemes">Themes</label>
-                  <input
-                    id="worldThemes"
-                    value={worldSettings.themes}
-                    onChange={(event) =>
-                      setWorldSettings({ ...worldSettings, themes: event.target.value })
-                    }
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="worldNotes">Style notes</label>
-                  <input
-                    id="worldNotes"
-                    value={worldSettings.styleNotes}
-                    onChange={(event) =>
-                      setWorldSettings({
-                        ...worldSettings,
-                        styleNotes: event.target.value
-                      })
-                    }
-                  />
-                </div>
+                {[
+                  ["World name", "name"],
+                  ["Color palette", "palette"],
+                  ["Era / tech level", "era"],
+                  ["Themes", "themes"],
+                  ["Style notes", "styleNotes"]
+                ].map(([label, key]) => (
+                  <div className="input-group" key={key}>
+                    <label>{label}</label>
+                    <input
+                      value={worldSettings[key as keyof WorldSettings] ?? ""}
+                      onChange={(event) =>
+                        setWorldSettings((prev) => ({ ...prev, [key]: event.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -314,10 +278,7 @@ export default function HomePage() {
 
         <section className="panel">
           <div className="tabs">
-            <button
-              className={`tab ${activeTab === "raw" ? "active" : ""}`}
-              onClick={() => setActiveTab("raw")}
-            >
+            <button className={`tab ${activeTab === "raw" ? "active" : ""}`} onClick={() => setActiveTab("raw")}>
               Raw Prompt
             </button>
             <button
@@ -332,14 +293,14 @@ export default function HomePage() {
           {activeTab === "raw" && (
             <div className="input-group">
               <label>Copy-paste prompt</label>
-              <textarea value={rawPrompt} readOnly placeholder="Your prompt appears here." />
+              <textarea readOnly value={rawPrompt} placeholder="Generated prompt output appears here." />
             </div>
           )}
 
           {activeTab === "shots" && (
             <div className="shots">
               {shots.map((shot) => (
-                <div className="shot-card" key={`${shot.shot}-${shot.time}`}>
+                <div key={`${shot.shot}-${shot.time}`} className="shot-card">
                   <div className="pill">
                     Shot {shot.shot} • {shot.time}
                   </div>
@@ -348,6 +309,20 @@ export default function HomePage() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="panel">
+          <h3>Recent Prompt Sessions</h3>
+          <div className="shots">
+            {sessions.length === 0 && <p className="small">No sessions yet.</p>}
+            {sessions.map((session) => (
+              <div className="shot-card" key={session.id}>
+                <div className="pill">{modeLabels[session.mode as ModeOption]}</div>
+                <div className="small">{new Date(session.createdAt).toLocaleString()}</div>
+                <div>{session.rawPrompt.slice(0, 180)}{session.rawPrompt.length > 180 ? "…" : ""}</div>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
     </main>

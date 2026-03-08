@@ -1,10 +1,14 @@
 export type Mode = "single" | "sequence" | "world";
 
+export type TargetGenerator = "Sora" | "Grok" | "Other";
+
+export type Duration = "6s" | "10s" | "15s";
+
 export interface UserInput {
   mode: Mode;
   baseIdea: string;
-  targetGenerator: "Sora" | "Grok" | "Other";
-  duration: "6s" | "10s" | "15s";
+  targetGenerator: TargetGenerator;
+  duration: Duration;
   visualStyle: string;
   epicScale: boolean;
   keepCharacters: boolean;
@@ -21,6 +25,11 @@ export interface WorldSettings {
   styleNotes?: string;
 }
 
+export interface WorldRecord extends WorldSettings {
+  id: string;
+  createdAt: string;
+}
+
 export interface Shot {
   shot: number;
   time: string;
@@ -29,6 +38,16 @@ export interface Shot {
 
 export interface PromptResponse {
   rawPrompt: string;
-  shots?: Shot[];
+  shots: Shot[];
   sessionId?: string;
+}
+
+export interface PromptSession {
+  id: string;
+  createdAt: string;
+  mode: Mode;
+  input: string;
+  rawPrompt: string;
+  shotsJson?: string;
+  worldId?: string;
 }
