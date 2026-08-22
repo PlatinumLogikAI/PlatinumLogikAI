@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B.O.T.M. Girls — Homepage Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #122038;
+    --navy-2: #0d1a2e;
+    --cream: #fff8f2;
+    --peach: #f7d8c8;
+    --peach-2: #fbe7db;
+    --coral: #f2866e;
+    --coral-dark: #e06b52;
+    --gold: #dca24a;
+    --ink: #201c1b;
+    --muted: #6f6763;
+    --line: #ecdccf;
+    --card: #ffffff;
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 18px 40px -18px rgba(32, 28, 27, 0.25);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Playfair Display', Georgia, serif;
+    margin: 0;
+  }
+
+  .script {
+    font-family: 'Mrs Saint Delafield', cursive;
+    font-weight: 400;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  button { font-family: inherit; cursor: pointer; }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--coral);
+  }
+  .eyebrow.on-dark { color: var(--peach); }
+  .eyebrow.muted { color: var(--muted); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1.5px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .btn-solid { background: var(--coral); color: #fff; box-shadow: 0 10px 24px -10px rgba(242,134,110,0.7); }
+  .btn-solid:hover { background: var(--coral-dark); }
+  .btn-outline { background: transparent; border-color: rgba(18,32,56,0.25); color: var(--navy); }
+  .btn-outline:hover { border-color: var(--navy); }
+  .btn-outline.on-dark { border-color: rgba(255,248,242,0.4); color: var(--cream); }
+  .btn-outline.on-dark:hover { border-color: var(--cream); }
+  .btn-dark { background: var(--navy); color: var(--cream); }
+  .btn-dark:hover { background: var(--navy-2); }
+  .btn-sm { padding: 9px 16px; font-size: 0.72rem; }
+
+  .link-arrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--coral-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ---------- Page frame ---------- */
+  .page {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px clamp(16px, 3vw, 40px) 64px;
+  }
+
+  .intro-banner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 10px clamp(16px, 3vw, 40px);
+  }
+  .intro-banner p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr) 300px;
+    grid-template-rows: auto auto;
+    gap: 26px;
+    align-items: start;
+  }
+
+  .col-left { grid-column: 1; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 22px; }
+  .col-center-top { grid-column: 2; grid-row: 1; }
+  .col-center-bottom { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 22px; }
+  .col-right-top { grid-column: 3; grid-row: 1; }
+  .col-right-bottom { grid-column: 3; grid-row: 2; display: flex; flex-direction: column; gap: 22px; }
+
+  .panel {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+  }
+
+  /* ---------- Brand block (left) ---------- */
+  .brand-mark {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .brand-icon svg { display: block; }
+  .brand-name {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .brand-name .botm {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--navy);
+  }
+  .brand-name .girls {
+    font-size: 2.6rem;
+    color: var(--coral);
+    margin-top: -6px;
+  }
+
+  .brand-tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--navy);
+    margin: 4px 0 12px;
+  }
+  .brand-copy {
+    font-size: 0.94rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+
+  .how-it-works {
+    padding: 22px;
+  }
+  .how-it-works h3 {
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--navy);
+    margin-bottom: 18px;
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .how-item { text-align: center; }
+  .how-item .icon {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--peach-2);
+    color: var(--coral-dark);
+  }
+  .how-item h4 {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--navy);
+    margin: 0 0 6px;
+  }
+  .how-item p {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .why-panel {
+    background: var(--navy);
+    color: var(--cream);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .why-panel h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    margin-bottom: 16px;
+    color: var(--peach);
+  }
+  .why-list { display: flex; flex-direction: column; gap: 11px; margin-bottom: 32px; position: relative; z-index: 1; max-width: 72%; }
+  .why-list li { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+  .why-list svg { flex: none; color: var(--coral); }
+  .why-illustration {
+    position: absolute;
+    right: -22px;
+    bottom: -22px;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .community-panel { padding: 22px; }
+  .community-panel h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .community-panel p { font-size: 0.86rem; color: var(--muted); margin: 0 0 16px; }
+  .avatar-row { display: flex; align-items: center; gap: -8px; margin-bottom: 18px; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 3px solid var(--cream);
+    margin-left: -12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: #fff;
+  }
+  .avatar:first-child { margin-left: 0; }
+
+  /* ---------- Center: browser frame ---------- */
+  .browser-frame {
+    border-radius: var(--radius-lg);
+    background: var(--navy);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .browser-chrome {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: var(--navy-2);
+  }
+  .browser-chrome .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+  .browser-inner { background: var(--cream); }
+
+  .app-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 26px;
+    background: var(--navy);
+    color: var(--cream);
+  }
+  .app-nav .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    flex: none;
+  }
+  .app-nav .logo .girls { font-family: 'Mrs Saint Delafield', cursive; font-size: 1.3rem; color: var(--coral); font-weight: 400; }
+  .app-nav .logo .botm { font-size: 0.95rem; }
+  .app-nav-links {
+    display: flex;
+    gap: 18px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .app-nav-links a { opacity: 0.75; padding-bottom: 4px; border-bottom: 2px solid transparent; }
+  .app-nav-links a.active { opacity: 1; color: var(--coral); border-color: var(--coral); }
+  .app-nav .profile {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--coral), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700; color: #fff;
+    flex: none;
+  }
+
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 40px 30px;
+    background: radial-gradient(120% 140% at 100% 0%, var(--peach) 0%, var(--cream) 55%);
+    overflow: hidden;
+  }
+  .hero-copy h1 {
+    font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.08;
+    margin: 10px 0 8px;
+  }
+  .hero-copy .byline { font-size: 0.95rem; color: var(--muted); margin-bottom: 12px; }
+  .hero-copy .desc { font-size: 0.92rem; color: var(--ink); line-height: 1.55; margin-bottom: 22px; max-width: 42ch; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .book-cover-wrap { display: flex; justify-content: center; }
+  .book-cover {
+    width: 220px;
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+    background: linear-gradient(160deg, #2b3a63 0%, #16233f 55%, #0d1626 100%);
+    box-shadow: 0 30px 50px -18px rgba(13, 22, 38, 0.55), 0 4px 0 rgba(255,255,255,0.06) inset;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px 14px;
+    color: var(--gold);
+    transform: rotate(2deg);
+  }
+  .book-cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(220,162,74,0.35), transparent 45%),
+      radial-gradient(circle at 80% 85%, rgba(242,134,110,0.25), transparent 40%);
+  }
+  .book-cover .cover-eyebrow { font-size: 0.6rem; letter-spacing: 0.18em; opacity: 0.8; position: relative; }
+  .book-cover .cover-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.5rem; line-height: 1.08; color: #fdf3e2; position: relative; }
+  .book-cover .cover-author { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #e7c98a; position: relative; }
+  .cover-motif { position: absolute; inset: 0; opacity: 0.8; }
+
+  .hub {
+    padding: 24px 40px 6px;
+    background: var(--cream);
+  }
+  .hub h3 {
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--coral-dark);
+    margin-bottom: 16px;
+  }
+  .hub-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 18px 10px;
+  }
+  .hub-item {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--navy);
+  }
+  .hub-item .icon {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--peach-2);
+    color: var(--coral-dark);
+  }
+
+  .conversation { padding: 26px 40px 36px; background: var(--cream); }
+  .conversation-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .conversation-head h2 { font-size: 1.05rem; color: var(--navy); font-weight: 600; }
+  .conversation-sub { font-size: 0.82rem; color: var(--muted); margin: 4px 0 16px; }
+  .thread-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .thread-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .thread-card h4 { font-size: 0.92rem; color: var(--navy); margin: 0 0 6px; font-weight: 700; }
+  .thread-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.45; margin: 0 0 12px; min-height: 2.9em; }
+  .thread-meta { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--coral-dark); font-weight: 600; }
+
+  /* ---------- Bottom row: features + suggested reads ---------- */
+  .features { padding: 30px; text-align: center; }
+  .features h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--navy);
+    margin-bottom: 22px;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+  .feature-item { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .feature-item .icon {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--peach-2);
+    color: var(--coral-dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feature-item span { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; color: var(--navy); }
+
+  .suggested { padding: 26px 30px 30px; }
+  .suggested-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .suggested-head h3 { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; color: var(--navy); }
+  .suggested-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .mini-cover {
+    aspect-ratio: 2/3;
+    border-radius: 8px;
+    padding: 12px 10px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 20px -10px rgba(0,0,0,0.35);
+  }
+  .mini-cover .t { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.92rem; line-height: 1.05; position: relative; }
+  .mini-cover .a { font-size: 0.58rem; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; margin-top: 4px; position: relative; }
+
+  /* ---------- Right column: phone mockup ---------- */
+  .phone-shell {
+    background: var(--navy);
+    border-radius: 34px;
+    padding: 10px;
+    box-shadow: var(--shadow);
+  }
+  .phone-screen {
+    background: var(--cream);
+    border-radius: 26px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-notch { height: 20px; display: flex; align-items: center; justify-content: center; }
+  .phone-notch::after { content: ''; width: 50px; height: 5px; border-radius: 4px; background: rgba(0,0,0,0.25); }
+  .phone-topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 16px 10px; }
+  .phone-topbar .logo { font-weight: 700; font-size: 0.78rem; color: var(--navy); }
+  .phone-topbar .logo span { font-family: 'Mrs Saint Delafield', cursive; color: var(--coral); font-size: 1rem; font-weight: 400; }
+  .phone-cover {
+    margin: 0 16px 10px;
+    height: 130px;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #2b3a63, #0d1626);
+    display: flex; align-items: flex-end; padding: 10px;
+    color: #f2dcae;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.1;
+  }
+  .phone-body { padding: 0 16px 14px; }
+  .phone-body .eyebrow { font-size: 0.6rem; }
+  .phone-body h4 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--navy); margin: 4px 0 10px; line-height: 1.15; }
+  .phone-cta {
+    display: block; text-align: center;
+    background: var(--navy); color: var(--cream);
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em;
+    padding: 9px; border-radius: 999px; margin-bottom: 14px;
+  }
+  .phone-panel { background: var(--peach-2); border-radius: var(--radius-sm); padding: 10px 12px; margin: 0 16px 12px; }
+  .phone-panel h5 { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; color: var(--coral-dark); margin: 0 0 8px; }
+  .phone-panel .row { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--ink); padding: 5px 0; border-top: 1px solid rgba(0,0,0,0.06); }
+  .phone-panel .row:first-of-type { border-top: none; }
+  .phone-panel .row span:first-child { font-weight: 600; }
+  .phone-panel .row span:last-child { color: var(--muted); }
+  .phone-tabbar {
+    display: flex; justify-content: space-around;
+    padding: 10px 8px 14px;
+    border-top: 1px solid var(--line);
+  }
+  .phone-tabbar .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.5rem; color: var(--muted); font-weight: 600; }
+  .phone-tabbar .tab.active { color: var(--coral-dark); }
+
+  .bookshelf-panel { padding: 22px; }
+  .bookshelf-panel .eyebrow { display: block; margin-bottom: 4px; }
+  .bookshelf-panel h3 { font-size: 1.02rem; color: var(--navy); margin-bottom: 12px; font-family: 'Playfair Display', serif; }
+  .bookshelf-panel ul { display: flex; flex-direction: column; gap: 9px; }
+  .bookshelf-panel li { display: flex; gap: 9px; font-size: 0.84rem; color: var(--ink); }
+  .bookshelf-panel li svg { flex: none; color: var(--coral-dark); margin-top: 2px; }
+
+  .quote-panel {
+    background: var(--peach);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    position: relative;
+  }
+  .quote-panel .mark { font-family: 'Playfair Display', serif; font-size: 2.6rem; color: var(--coral-dark); line-height: 0.6; }
+  .quote-panel p.q {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--navy);
+    line-height: 1.35;
+    margin: 6px 0 12px;
+  }
+  .quote-panel .who { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1180px) {
+    .layout { grid-template-columns: 1fr; }
+    .col-left, .col-center-top, .col-center-bottom, .col-right-top, .col-right-bottom {
+      grid-column: 1; grid-row: auto;
+    }
+    .phone-shell { max-width: 320px; margin: 0 auto; }
+  }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; text-align: left; padding: 30px 22px; }
+    .book-cover-wrap { order: -1; margin-bottom: 8px; }
+    .book-cover { width: 170px; transform: none; }
+    .app-nav-links { display: none; }
+    .hub, .conversation, .features, .suggested { padding-left: 22px; padding-right: 22px; }
+    .hub-grid { grid-template-columns: repeat(3, 1fr); }
+    .thread-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: repeat(3, 1fr); }
+    .suggested-grid { grid-template-columns: repeat(3, 1fr); }
+    .how-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 520px) {
+    .page { padding: 20px 14px 100px; }
+    .suggested-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="intro-banner">
+  <p>Design mockup — B.O.T.M. Girls homepage · static, front-end only · desktop app preview (center) + mobile preview (right)</p>
+</div>
+
+<div class="page">
+  <div class="layout">
+
+    <!-- LEFT: brand / marketing panel -->
+    <aside class="col-left" aria-label="About B.O.T.M. Girls">
+      <div>
+        <div class="brand-mark">
+          <span class="brand-icon" aria-hidden="true">
+            <svg width="46" height="52" viewBox="0 0 46 52" fill="none">
+              <path d="M23 4 C23 4 15 10 15 20 C15 28 20 30 23 34" stroke="#dca24a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <ellipse cx="23" cy="6" rx="4" ry="5" fill="#dca24a"/>
+              <path d="M8 28 h30 v4 a2 2 0 0 1 -2 2 h-26 a2 2 0 0 1 -2 -2 Z" fill="#122038"/>
+              <rect x="6" y="34" width="34" height="8" rx="1.5" fill="#f2866e"/>
+              <rect x="8" y="42" width="30" height="7" rx="1.5" fill="#122038"/>
+            </svg>
+          </span>
+          <span class="brand-name">
+            <span class="botm">B.O.T.M.</span>
+            <span class="girls script">Girls</span>
+          </span>
+        </div>
+        <p class="brand-tagline">A book of the month club for girls.</p>
+        <p class="brand-copy">Read together. Think deeper. Make it yours. B.O.T.M. Girls is a cozy corner of the internet where stories come alive and friendships grow.</p>
+      </div>
+
+      <div class="panel how-it-works">
+        <h3>How It Works</h3>
+        <div class="how-grid">
+          <div class="how-item">
+            <span class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5c3-1.5 6-1.5 9 0v14c-3-1.5-6-1.5-9 0V5Z"/><path d="M21 5c-3-1.5-6-1.5-9 0v14c3-1.5 6-1.5 9 0V5Z"/></svg>
+            </span>
+            <h4>We Pick</h4>
+            <p>A great book each month</p>
+          </div>
+          <div class="how-item">
+            <span class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 2 5 5 5 9s-2 7-5 9c-3-2-5-5-5-9s2-7 5-9Z"/></svg>
+            </span>
+            <h4>You Read</h4>
+            <p>Dive in and enjoy</p>
+          </div>
+          <div class="how-item">
+            <span class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4c-1.4 0-2.7-.3-3.9-.9L3 20l1-4.9a8.4 8.4 0 1 1 17-3.6Z"/></svg>
+            </span>
+            <h4>We Discuss</h4>
+            <p>Share thoughts &amp; theories</p>
+          </div>
+          <div class="how-item">
+            <span class="icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6a4.5 4.5 0 0 0-7.6-3.2l-1.2 1.2-1.2-1.2A4.5 4.5 0 1 0 4.4 12l7.6 7.5 7.6-7.5a4.5 4.5 0 0 0 1.2-3.4Z"/></svg>
+            </span>
+            <h4>We Grow</h4>
+            <p>Stronger together through stories</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-panel">
+        <h3>Why You'll Love It Here</h3>
+        <ul class="why-list">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.4 2.3 5 5.7 5c2 0 3.4 1 4.8 2.7C11.9 6 13.3 5 15.3 5c3.4 0 5.1 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z"/></svg>
+            A welcoming, judgment-free space
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.4 2.3 5 5.7 5c2 0 3.4 1 4.8 2.7C11.9 6 13.3 5 15.3 5c3.4 0 5.1 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z"/></svg>
+            Meaningful discussions
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.4 2.3 5 5.7 5c2 0 3.4 1 4.8 2.7C11.9 6 13.3 5 15.3 5c3.4 0 5.1 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z"/></svg>
+            Fun extras &amp; creative challenges
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.4 2.3 5 5.7 5c2 0 3.4 1 4.8 2.7C11.9 6 13.3 5 15.3 5c3.4 0 5.1 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z"/></svg>
+            Make real connections
+          </li>
+        </ul>
+        <svg class="why-illustration" width="120" height="96" viewBox="0 0 150 120" fill="none" aria-hidden="true">
+          <rect x="20" y="30" width="60" height="70" rx="6" fill="#1a2c4a"/>
+          <rect x="30" y="45" width="40" height="45" rx="4" fill="#f2866e" opacity="0.85"/>
+          <circle cx="120" cy="45" r="22" fill="#1a2c4a"/>
+          <path d="M118 20c8 6 8 18 0 26" stroke="#dca24a" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+
+      <div class="panel community-panel">
+        <h3>Community, First</h3>
+        <p>Meet girls who love books as much as you do.</p>
+        <div class="avatar-row" aria-hidden="true">
+          <span class="avatar" style="background:#e08e6d;">A</span>
+          <span class="avatar" style="background:#c98b6f;">M</span>
+          <span class="avatar" style="background:#8a6a52;">J</span>
+          <span class="avatar" style="background:#5d4a3c;">R</span>
+        </div>
+        <button class="btn btn-solid" style="width:100%;">Find Your People</button>
+      </div>
+    </aside>
+
+    <!-- CENTER TOP: desktop app preview -->
+    <section class="col-center-top" aria-label="Desktop app preview">
+      <div class="browser-frame">
+        <div class="browser-chrome" aria-hidden="true">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="browser-inner">
+
+          <nav class="app-nav">
+            <span class="logo"><span class="botm">B.O.T.M.</span><span class="girls">Girls</span></span>
+            <div class="app-nav-links">
+              <a href="#" class="active">Home</a>
+              <a href="#">Current Read</a>
+              <a href="#">Discuss</a>
+              <a href="#">Community</a>
+              <a href="#">Bookshelf</a>
+              <a href="#">Resources</a>
+            </div>
+            <span class="profile" aria-hidden="true">A</span>
+          </nav>
+
+          <div class="hero">
+            <div class="hero-copy">
+              <span class="eyebrow">Current Read</span>
+              <h1>The Priory of the Orange Tree</h1>
+              <p class="byline">by Samantha Shannon</p>
+              <p class="desc">A sweeping epic filled with dragons, sisterhood, and destiny.</p>
+              <div class="hero-actions">
+                <a href="#" class="btn btn-solid">About the Book</a>
+                <a href="#" class="btn btn-outline">Join the Discussion</a>
+              </div>
+            </div>
+            <div class="book-cover-wrap">
+              <div class="book-cover" role="img" aria-label="Stylized cover art for The Priory of the Orange Tree">
+                <svg class="cover-motif" viewBox="0 0 220 330" fill="none" aria-hidden="true">
+                  <path d="M60 300 C60 220 90 160 60 90" stroke="#dca24a" stroke-width="3" fill="none" opacity="0.5"/>
+                  <path d="M150 20c10 40-10 70 20 100s10 70-10 90" stroke="#f2866e" stroke-width="4" fill="none" opacity="0.6"/>
+                  <circle cx="170" cy="40" r="10" fill="#f2866e" opacity="0.5"/>
+                </svg>
+                <span class="cover-eyebrow">A NOVEL</span>
+                <span class="cover-title">The Priory of the Orange Tree</span>
+                <span class="cover-author">Samantha Shannon</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hub">
+            <h3>This Month's Hub</h3>
+            <div class="hub-grid">
+              <div class="hub-item">
+                <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4c-1.4 0-2.7-.3-3.9-.9L3 20l1-4.9a8.4 8.4 0 1 1 17-3.6Z"/></svg></span>
+                Discussion
+              </div>
+              <div class="hub-item">
+                <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+                Schedule
+              </div>
+              <div class="hub-item">
+                <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3-1 6-1 8 0v15c-2-1-5-1-8 0V5ZM20 5c-3-1-6-1-8 0v15c2-1 5-1 8 0V5Z"/></svg></span>
+                Reading Guide
+              </div>
+              <div class="hub-item">
+                <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 15l4.5-4.5L11 14l4-4 6 6"/></svg></span>
+                Fan Art
+              </div>
+              <div class="hub-item">
+                <span class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></span>
+                Poll
+              </div>
+            </div>
+          </div>
+
+          <div class="conversation">
+            <div class="conversation-head">
+              <h2>Join the Conversation</h2>
+              <a href="#" class="link-arrow">View all discussions →</a>
+            </div>
+            <p class="conversation-sub">What's everyone thinking?</p>
+            <div class="thread-grid">
+              <article class="thread-card">
+                <h4>Dragons &amp; Politics</h4>
+                <p>How do you feel about the power dynamics in the world?</p>
+                <span class="thread-meta">💬 24</span>
+              </article>
+              <article class="thread-card">
+                <h4>Ead &amp; Sabran</h4>
+                <p>The heart of the story. Let's talk about them!</p>
+                <span class="thread-meta">💬 18</span>
+              </article>
+              <article class="thread-card">
+                <h4>Predictions</h4>
+                <p>Where do you think the story is headed?</p>
+                <span class="thread-meta">💬 37</span>
+              </article>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER BOTTOM: features + suggested reads -->
+    <section class="col-center-bottom" aria-label="Features and suggested reads">
+      <div class="panel features">
+        <h3>Features You'll Use (and Love)</h3>
+        <div class="features-grid">
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.4c-1.4 0-2.7-.3-3.9-.9L3 20l1-4.9a8.4 8.4 0 1 1 17-3.6Z"/></svg></span>
+            <span>Discussion Boards</span>
+          </div>
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+            <span>Chapter Schedule</span>
+          </div>
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5c3-1 6-1 8 0v15c-2-1-5-1-8 0V5ZM20 5c-3-1-6-1-8 0v15c2-1 5-1 8 0V5Z"/></svg></span>
+            <span>Reading Guides</span>
+          </div>
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.7-10-9.3C.6 8.4 2.3 5 5.7 5c2 0 3.4 1 4.8 2.7C11.9 6 13.3 5 15.3 5c3.4 0 5.1 3.4 3.7 6.7C19.5 16.3 12 21 12 21Z"/></svg></span>
+            <span>Book Recommendations</span>
+          </div>
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3V9Z" fill="currentColor" stroke="none"/></svg></span>
+            <span>Watch Parties</span>
+          </div>
+          <div class="feature-item">
+            <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.6 6.6L21 10l-5 4.3L17.5 21 12 17.3 6.5 21 8 14.3 3 10l6.4-1.4L12 2Z"/></svg></span>
+            <span>Fun Challenges</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel suggested">
+        <div class="suggested-head">
+          <h3>Suggested Reads</h3>
+          <a href="#" class="link-arrow">View all →</a>
+        </div>
+        <div class="suggested-grid">
+          <div class="mini-cover" style="background:linear-gradient(160deg,#7a2b2b,#3e1414);">
+            <span class="t">A Court of Thorns and Roses</span>
+            <span class="a">Sarah J. Maas</span>
+          </div>
+          <div class="mini-cover" style="background:linear-gradient(160deg,#2c2740,#141126);">
+            <span class="t">Throne of Glass</span>
+            <span class="a">Sarah J. Maas</span>
+          </div>
+          <div class="mini-cover" style="background:linear-gradient(160deg,#8a3d1f,#3a1808);">
+            <span class="t">The Bone Season</span>
+            <span class="a">Samantha Shannon</span>
+          </div>
+          <div class="mini-cover" style="background:linear-gradient(160deg,#3a1f47,#170a1e);">
+            <span class="t">Daughter of Smoke &amp; Bone</span>
+            <span class="a">Laini Taylor</span>
+          </div>
+          <div class="mini-cover" style="background:linear-gradient(160deg,#1e3a52,#0a1622);">
+            <span class="t">The Way of Kings</span>
+            <span class="a">Brandon Sanderson</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT TOP: mobile preview -->
+    <aside class="col-right-top" aria-label="Mobile app preview">
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="phone-notch" aria-hidden="true"></div>
+          <div class="phone-topbar">
+            <span class="logo">B.O.T.M.<span>Girls</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#122038" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </div>
+          <div class="phone-cover">The Priory of the Orange Tree</div>
+          <div class="phone-body">
+            <span class="eyebrow">Current Read</span>
+            <h4>The Priory of the Orange Tree</h4>
+            <a href="#" class="phone-cta">Join the Discussion</a>
+          </div>
+          <div class="phone-panel">
+            <h5>What's Happening</h5>
+            <div class="row"><span>May Discussion: Chapter 10–20</span><span>May 18</span></div>
+            <div class="row"><span>Live Chat: Dragons &amp; Lore</span><span>May 25</span></div>
+            <div class="row"><span>Poll Closing Soon: Vote now!</span><span>May 30</span></div>
+          </div>
+          <div class="phone-tabbar" aria-hidden="true">
+            <span class="tab active">🏠<br>Home</span>
+            <span class="tab">💬<br>Discuss</span>
+            <span class="tab">👥<br>Community</span>
+            <span class="tab">📚<br>Bookshelf</span>
+            <span class="tab">👤<br>Profile</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT BOTTOM: bookshelf + quote -->
+    <aside class="col-right-bottom" aria-label="Bookshelf and quote">
+      <div class="panel bookshelf-panel">
+        <span class="eyebrow muted">Bookshelf</span>
+        <h3>Your Journey, Tracked</h3>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Track your progress</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Rate &amp; review</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Save favorite quotes</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> See past BOTM picks</li>
+        </ul>
+      </div>
+
+      <blockquote class="quote-panel">
+        <span class="mark" aria-hidden="true">&ldquo;</span>
+        <p class="q">Books are a uniquely portable magic.</p>
+        <span class="who">— Stephen King</span>
+      </blockquote>
+    </aside>
+
+  </div>
+</div>
+
+</body>
+</html>
