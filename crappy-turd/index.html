@@ -2,206 +2,647 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Crappy Turd</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Crappy Turd — Flap the Sewer</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-  body { margin: 0; font-family: sans-serif; text-align: center; background: #87cefa; }
-  canvas { background: #87cefa; display: block; margin: 0 auto; }
-  #overlay { position:absolute; top:0; left:0; width:100%; height:100%;
-    display:flex; flex-direction:column; justify-content:center; align-items:center;
-    background:rgba(135,206,250,0.9); }
-  button { padding:10px 20px; margin:8px; font-size:16px; }
-  .title { font-family: 'Press Start 2P', monospace; font-size: 64px; color: #ffd700;
-    text-shadow: 4px 4px 0 #000; margin: 20px 0; }
+
+  :root {
+    --sky-top: #8ecae6;
+    --sky-bottom: #b8e3d6;
+    --tile-light: #f1faf7;
+    --tile-dark: #cfe9df;
+    --grate: #384c46;
+    --pipe-body: #4f8a5b;
+    --pipe-body-dark: #396745;
+    --pipe-highlight: #7fbf8c;
+    --brown: #7a4a26;
+    --brown-dark: #5c3719;
+    --gold: #ffd700;
+    --ink: #1c2321;
+    --paper-bg: #fffaf0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    background: radial-gradient(circle at 50% 20%, #2f6f6a, #163331 70%);
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .game-wrap {
+    position: relative;
+    width: min(94vw, 420px);
+    aspect-ratio: 400 / 600;
+    filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.45));
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 16px;
+    background: linear-gradient(var(--sky-top), var(--sky-bottom));
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  .icon-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.75);
+    font-size: 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .icon-btn:hover { background: #fff; }
+  .icon-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 24px 18px;
+    background: linear-gradient(rgba(12, 28, 26, 0.72), rgba(12, 28, 26, 0.86));
+    color: var(--paper-bg);
+  }
+  .overlay.visible { display: flex; }
+
+  .title {
+    font-size: clamp(28px, 8vw, 40px);
+    color: var(--gold);
+    text-shadow: 3px 3px 0 #000;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .title .icon { display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-6px) rotate(6deg); } }
+
+  .tagline {
+    font-size: 10px;
+    color: #cfe9df;
+    margin: 0 0 6px;
+    line-height: 1.6;
+  }
+
+  .stat {
+    font-size: 12px;
+    margin: 2px 0;
+  }
+  .stat.big {
+    font-size: 16px;
+    color: var(--gold);
+  }
+  .stat.new-record {
+    color: #ffef9f;
+    animation: pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+  .hint {
+    font-size: 9px;
+    color: #cfe9df;
+    margin-top: 2px;
+  }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; justify-content: center; }
+
+  button.game-btn {
+    font-family: inherit;
+    font-size: 11px;
+    color: #fff;
+    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-dark) 100%);
+    border: 2px solid #3a2210;
+    border-radius: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #2a1508;
+  }
+  button.game-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2a1508; }
+  button.game-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  button.game-btn.secondary {
+    background: linear-gradient(180deg, #5b6b66 0%, #3f4b47 100%);
+    border-color: #23302c;
+    box-shadow: 0 4px 0 #1a231f;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .title .icon { animation: none; }
+    .stat.new-record { animation: none; }
+  }
 </style>
 </head>
 <body>
-<div id="overlay"></div>
-<canvas id="game" width="400" height="600"></canvas>
+<div class="game-wrap">
+  <canvas id="game" width="400" height="600" aria-label="Crappy Turd game canvas" role="img"></canvas>
+  <div id="overlay" class="overlay"></div>
+  <button id="muteBtn" class="icon-btn" aria-label="Toggle sound" type="button">🔊</button>
+</div>
+
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
-const GRAVITY = 0.25;
-const FLAP = -10;
-const PIPE_GAP = 200;
-const PIPE_WIDTH = 60;
-const PIPE_SPEED = 2;
-let frameId;
-let score = 0;
-let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
-const overlay = document.getElementById('overlay');
+(() => {
+  "use strict";
 
-class Poo {
-  constructor() {
-    this.x = WIDTH / 4;
-    this.y = HEIGHT / 2;
-    this.vel = 0;
-    this.size = 48;
-    this.blinkTimer = Math.random() * 200 + 100;
-    this.blinkFrames = 0;
-  }
-  flap() {
-    this.vel = FLAP;
-  }
-  nudgeUp() {
-    // small upward boost for finer control
-    this.vel += FLAP / 2;
-  }
-  nudgeDown() {
-    // small downward push for finer control
-    this.vel -= FLAP / 2;
-  }
-  blink() {
-    this.blinkFrames = 5;
-  }
-  update() {
-    this.vel += GRAVITY;
-    this.y += this.vel;
-    if (this.y < 0) { this.y = 0; this.vel = 0; }
-    if (this.y > HEIGHT) { this.y = HEIGHT; this.vel = 0; }
-    if (this.blinkTimer <= 0) {
-      if (this.blinkFrames === 0) {
-        this.blinkFrames = 5;
-        this.blinkTimer = Math.random() * 200 + 100;
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const overlay = document.getElementById('overlay');
+  const muteBtn = document.getElementById('muteBtn');
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+
+  // ---------- Tunables ----------
+  const GRAVITY = 0.32;
+  const FLAP_VEL = -7.6;
+  const BASE_PIPE_SPEED = 2.3;
+  const MAX_PIPE_SPEED = 4.4;
+  const BASE_PIPE_GAP = 190;
+  const MIN_PIPE_GAP = 148;
+  const PIPE_WIDTH = 62;
+  const PIPE_SPACING = 250;
+  const FLOOR_HEIGHT = 54;
+  const FLOOR_TOP = HEIGHT - FLOOR_HEIGHT;
+
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- Sound (synthesized, no external assets) ----------
+  const Sound = (() => {
+    let ctxA = null;
+    let muted = localStorage.getItem('ct_muted') === '1';
+    function unlock() {
+      if (!ctxA) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) ctxA = new AC();
+      } else if (ctxA.state === 'suspended') {
+        ctxA.resume();
       }
-    } else {
-      this.blinkTimer--;
     }
-    if (this.blinkFrames > 0) {
-      this.blinkFrames--;
+    function tone(freq0, freq1, dur, type, gain0) {
+      if (muted || !ctxA) return;
+      const t0 = ctxA.currentTime;
+      const osc = ctxA.createOscillator();
+      const g = ctxA.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq0, t0);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(freq1, 1), t0 + dur);
+      g.gain.setValueAtTime(gain0, t0);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      osc.connect(g).connect(ctxA.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur);
+    }
+    function noise(dur, gain0) {
+      if (muted || !ctxA) return;
+      const bufferSize = Math.floor(ctxA.sampleRate * dur);
+      const buffer = ctxA.createBuffer(1, bufferSize, ctxA.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      const src = ctxA.createBufferSource();
+      src.buffer = buffer;
+      const g = ctxA.createGain();
+      g.gain.setValueAtTime(gain0, ctxA.currentTime);
+      src.connect(g).connect(ctxA.destination);
+      src.start();
+    }
+    return {
+      flap() { unlock(); tone(260, 130, 0.09, 'square', 0.06); },
+      score() { unlock(); tone(660, 880, 0.07, 'sine', 0.08); setTimeout(() => tone(880, 990, 0.09, 'sine', 0.07), 60); },
+      death() { unlock(); tone(420, 50, 0.55, 'sawtooth', 0.09); noise(0.4, 0.05); },
+      toggleMuted() {
+        muted = !muted;
+        localStorage.setItem('ct_muted', muted ? '1' : '0');
+        muteBtn.textContent = muted ? '🔇' : '🔊';
+        return muted;
+      },
+      get muted() { return muted; },
+    };
+  })();
+  muteBtn.textContent = Sound.muted ? '🔇' : '🔊';
+  muteBtn.addEventListener('click', () => Sound.toggleMuted());
+
+  // ---------- Particles ----------
+  const particles = [];
+  function spawnPuff(x, y) {
+    for (let i = 0; i < 5; i++) {
+      particles.push({
+        type: 'puff', x, y, vx: -1 - Math.random() * 1.5, vy: (Math.random() - 0.5) * 1.5,
+        life: 0, maxLife: 22 + Math.random() * 10, size: 4 + Math.random() * 4,
+      });
     }
   }
-  draw() {
-    ctx.font = `${this.size}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('\uD83D\uDCA9', this.x, this.y);
-    if (this.blinkFrames > 0) {
-      ctx.fillStyle = '#8b4513';
-      const w = this.size;
-      const h = this.size;
-      ctx.fillRect(this.x - w * 0.22, this.y - h * 0.28, w * 0.15, h * 0.05);
-      ctx.fillRect(this.x + w * 0.07, this.y - h * 0.28, w * 0.15, h * 0.05);
+  function spawnSplat(x, y) {
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const spd = 1.5 + Math.random() * 4;
+      particles.push({
+        type: 'splat', x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 1,
+        life: 0, maxLife: 40 + Math.random() * 20, size: 3 + Math.random() * 5,
+      });
     }
   }
-  get rect() {
-    return {x: this.x - this.size/2, y: this.y - this.size/2, w: this.size, h: this.size};
+  function spawnScorePop(x, y) {
+    particles.push({ type: 'pop', x, y, vx: 0, vy: -0.8, life: 0, maxLife: 45, text: '+1' });
   }
-}
-
-class Pipe {
-  constructor(x) {
-    this.x = x;
-    this.top = Math.random() * (HEIGHT - PIPE_GAP - 100) + 50;
-    this.passed = false;
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life++;
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.type === 'splat') p.vy += 0.15;
+      if (p.life >= p.maxLife) particles.splice(i, 1);
+    }
   }
-  update() { this.x -= PIPE_SPEED; }
-  draw() {
-    ctx.fillStyle = 'green';
-    ctx.fillRect(this.x, 0, PIPE_WIDTH, this.top);
-    ctx.fillRect(this.x, this.top + PIPE_GAP, PIPE_WIDTH, HEIGHT - (this.top + PIPE_GAP));
+  function drawParticles() {
+    for (const p of particles) {
+      const t = p.life / p.maxLife;
+      if (p.type === 'puff') {
+        ctx.globalAlpha = 1 - t;
+        ctx.fillStyle = '#caa877';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (1 - t * 0.4), 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.type === 'splat') {
+        ctx.globalAlpha = 1 - t;
+        ctx.fillStyle = '#5c3719';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (1 - t * 0.6), 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.type === 'pop') {
+        ctx.globalAlpha = 1 - t;
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '16px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.text, p.x, p.y);
+      }
+      ctx.globalAlpha = 1;
+    }
   }
-  offscreen() { return this.x + PIPE_WIDTH < 0; }
-  get topRect() { return {x: this.x, y: 0, w: PIPE_WIDTH, h: this.top}; }
-  get bottomRect() { return {x: this.x, y: this.top + PIPE_GAP, w: PIPE_WIDTH, h: HEIGHT - (this.top + PIPE_GAP)}; }
-}
 
-const poo = new Poo();
-let pipes;
+  // ---------- Ambient flies ----------
+  const flies = Array.from({ length: 4 }, (_, i) => ({
+    baseX: 40 + Math.random() * (WIDTH - 80),
+    baseY: 60 + Math.random() * 140,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.015 + Math.random() * 0.01,
+    radius: 18 + Math.random() * 20,
+    wing: 0,
+  }));
+  function drawFlies(t) {
+    ctx.fillStyle = '#222';
+    for (const f of flies) {
+      f.wing = Math.sin(t * 0.05 + f.phase * 5) > 0 ? 1 : 0.4;
+      const x = f.baseX + Math.cos(t * f.speed + f.phase) * f.radius;
+      const y = f.baseY + Math.sin(t * f.speed * 1.7 + f.phase) * (f.radius * 0.6);
+      ctx.beginPath();
+      ctx.ellipse(x, y, 2.4, 1.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = f.wing * 0.6;
+      ctx.beginPath();
+      ctx.ellipse(x - 2, y - 2, 2.6, 1.2, -0.4, 0, Math.PI * 2);
+      ctx.ellipse(x + 2, y - 2, 2.6, 1.2, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
 
-function resetGame() {
-  score = 0;
-  poo.y = HEIGHT / 2;
-  poo.vel = 0;
-  pipes = [new Pipe(WIDTH + 600)];
-}
-
-function rectsCollide(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
-function showStart() {
-  overlay.innerHTML = `<h1 class="title">Crappy Turd</h1><p>Press Space or click to flap.</p><p>High Score: ${highScore}</p><button id="startBtn">Start</button>`;
-  overlay.style.display = 'flex';
-  document.getElementById('startBtn').onclick = () => {
-    overlay.style.display = 'none';
-    resetGame();
-    gameLoop();
+  // ---------- Turd (player) ----------
+  const turd = {
+    x: WIDTH / 4,
+    y: HEIGHT / 2,
+    vel: 0,
+    size: 46,
+    rotation: 0,
+    squash: 1,
+    blinkTimer: 0,
+    blinkFrames: 0,
+    dead: false,
+    reset() {
+      this.y = HEIGHT / 2;
+      this.vel = 0;
+      this.rotation = 0;
+      this.squash = 1;
+      this.dead = false;
+      this.blinkTimer = 90 + Math.random() * 120;
+      this.blinkFrames = 0;
+    },
+    flap() {
+      this.vel = FLAP_VEL;
+      this.squash = 1.25;
+      spawnPuff(this.x - this.size * 0.3, this.y + this.size * 0.3);
+      Sound.flap();
+    },
+    blink() { this.blinkFrames = 6; },
+    update() {
+      this.vel += GRAVITY;
+      this.y += this.vel;
+      this.rotation = Math.max(-0.5, Math.min(1.1, this.vel / 12));
+      this.squash += (1 - this.squash) * 0.2;
+      if (this.y - this.size / 2 < 0) { this.y = this.size / 2; this.vel = 0; }
+      if (this.blinkTimer <= 0) {
+        if (this.blinkFrames === 0) { this.blinkFrames = 6; this.blinkTimer = 90 + Math.random() * 150; }
+      } else this.blinkTimer--;
+      if (this.blinkFrames > 0) this.blinkFrames--;
+    },
+    draw(idleBob) {
+      const drawY = idleBob !== undefined ? idleBob : this.y;
+      ctx.save();
+      ctx.translate(this.x, drawY);
+      ctx.rotate(idleBob !== undefined ? 0 : this.rotation);
+      ctx.scale(1 / this.squash, this.squash);
+      ctx.beginPath();
+      ctx.ellipse(0, this.size * 0.55, this.size * 0.4, this.size * 0.12, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fill();
+      ctx.font = `${this.size}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💩', 0, 0);
+      if (this.blinkFrames > 0) {
+        ctx.fillStyle = '#8b4513';
+        const w = this.size;
+        const h = this.size;
+        ctx.fillRect(-w * 0.22, -h * 0.28, w * 0.15, h * 0.05);
+        ctx.fillRect(w * 0.07 - w * 0.15, -h * 0.28, w * 0.15, h * 0.05);
+      }
+      ctx.restore();
+    },
+    get rect() {
+      const pad = this.size * 0.32;
+      return { x: this.x - this.size / 2 + pad, y: this.y - this.size / 2 + pad, w: this.size - pad * 2, h: this.size - pad * 2 };
+    },
   };
-}
 
-function showGameOver() {
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('ct_high_score', highScore);
+  // ---------- Pipes (sewer-plumbing reskin) ----------
+  function makePipe(x, gap) {
+    const margin = 46;
+    return {
+      x,
+      gap,
+      top: margin + Math.random() * (FLOOR_TOP - gap - margin * 2),
+      passed: false,
+    };
   }
-  overlay.innerHTML = `<p>Game Over! Score: ${score}</p><p>High Score: ${highScore}</p><button id="restartBtn">Restart</button><button id="quitBtn">Quit</button>`;
-  overlay.style.display = 'flex';
-  document.getElementById('restartBtn').onclick = () => {
-    overlay.style.display = 'none';
-    resetGame();
-    gameLoop();
-  };
-  document.getElementById('quitBtn').onclick = showStart;
-}
+  function drawPipeSegment(x, y, w, h, flip) {
+    const capH = 22;
+    const bodyGrad = ctx.createLinearGradient(x, 0, x + w, 0);
+    bodyGrad.addColorStop(0, '#396745');
+    bodyGrad.addColorStop(0.45, '#4f8a5b');
+    bodyGrad.addColorStop(0.55, '#63a06f');
+    bodyGrad.addColorStop(1, '#396745');
+    ctx.fillStyle = bodyGrad;
+    ctx.fillRect(x, y, w, h);
 
-function gameLoop() {
-  ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  poo.update();
-  if (pipes[pipes.length - 1].x < WIDTH - 250) {
-    pipes.push(new Pipe(WIDTH + 350));
+    const capY = flip ? y + h - capH : y;
+    ctx.fillStyle = '#2f5238';
+    ctx.fillRect(x - 5, capY, w + 10, capH);
+    const capGrad = ctx.createLinearGradient(x - 5, 0, x + w + 5, 0);
+    capGrad.addColorStop(0, '#43744f');
+    capGrad.addColorStop(0.5, '#7fbf8c');
+    capGrad.addColorStop(1, '#43744f');
+    ctx.fillStyle = capGrad;
+    ctx.fillRect(x - 5, capY + 3, w + 10, capH - 6);
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - 5, capY, w + 10, capH);
   }
-  for (let i = pipes.length - 1; i >= 0; i--) {
-    const p = pipes[i];
-    p.update();
-    p.draw();
-    if (p.offscreen()) pipes.splice(i,1);
-    if (!p.passed && p.x + PIPE_WIDTH < poo.x) {
-      p.passed = true;
-      score++;
-      poo.blink();
+  function drawPipe(p) {
+    if (p.top > 0) drawPipeSegment(p.x, 0, PIPE_WIDTH, p.top, true);
+    const bottomY = p.top + p.gap;
+    if (FLOOR_TOP - bottomY > 0) drawPipeSegment(p.x, bottomY, PIPE_WIDTH, FLOOR_TOP - bottomY, false);
+  }
+  function pipeRects(p) {
+    return [
+      { x: p.x, y: 0, w: PIPE_WIDTH, h: p.top },
+      { x: p.x, y: p.top + p.gap, w: PIPE_WIDTH, h: FLOOR_TOP - (p.top + p.gap) },
+    ];
+  }
+
+  // ---------- Floor (bathroom tile) ----------
+  function drawFloor() {
+    const tile = 20;
+    for (let x = 0; x < WIDTH; x += tile) {
+      for (let row = 0; row < 2; row++) {
+        const y = FLOOR_TOP + row * tile;
+        const even = (Math.round(x / tile) + row) % 2 === 0;
+        ctx.fillStyle = even ? '#f1faf7' : '#cfe9df';
+        ctx.fillRect(x, y, tile, tile);
+      }
     }
-    if (rectsCollide(poo.rect, p.topRect) || rectsCollide(poo.rect, p.bottomRect)) {
+    ctx.fillStyle = '#384c46';
+    ctx.fillRect(0, FLOOR_TOP - 6, WIDTH, 6);
+  }
+
+  // ---------- Game state ----------
+  let state = 'start'; // start | playing | paused | gameover
+  let score = 0;
+  let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
+  let pipes = [];
+  let shake = { time: 0, mag: 0 };
+  let t = 0;
+
+  function difficultySpeed() { return Math.min(BASE_PIPE_SPEED + score * 0.035, MAX_PIPE_SPEED); }
+  function difficultyGap() { return Math.max(BASE_PIPE_GAP - score * 1.1, MIN_PIPE_GAP); }
+
+  function resetGame() {
+    score = 0;
+    turd.x = WIDTH / 4;
+    turd.reset();
+    pipes = [makePipe(WIDTH + 400, BASE_PIPE_GAP)];
+    particles.length = 0;
+    shake = { time: 0, mag: 0 };
+  }
+
+  function rectsCollide(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function triggerShake(mag) { shake = { time: 16, mag }; }
+
+  function renderOverlay(html) {
+    overlay.innerHTML = html;
+    overlay.classList.add('visible');
+  }
+  function hideOverlay() { overlay.classList.remove('visible'); }
+
+  function showStart() {
+    state = 'start';
+    turd.reset();
+    renderOverlay(`
+      <h1 class="title"><span class="icon">💩</span> CRAPPY TURD</h1>
+      <p class="tagline">One log. Infinite pipes.<br>Zero dignity.</p>
+      <p class="stat big">Best: ${highScore}</p>
+      <div class="btn-row"><button id="startBtn" class="game-btn" type="button">PLOP IN ▶</button></div>
+      <p class="hint">Tap, click, or press Space to flap<br>through the sewer pipes.</p>
+    `);
+    document.getElementById('startBtn').addEventListener('click', startGame);
+  }
+
+  function startGame() {
+    hideOverlay();
+    resetGame();
+    state = 'playing';
+  }
+
+  function endGame() {
+    state = 'gameover';
+    turd.dead = true;
+    spawnSplat(turd.x, turd.y);
+    triggerShake(7);
+    Sound.death();
+    const isRecord = score > highScore;
+    if (isRecord) {
+      highScore = score;
+      localStorage.setItem('ct_high_score', String(highScore));
+    }
+    renderOverlay(`
+      <h1 class="title" style="font-size:22px;">🚽 FLUSHED! 🚽</h1>
+      <p class="stat big">Score: ${score}</p>
+      <p class="stat ${isRecord ? 'new-record' : ''}">${isRecord ? 'NEW RECORD! The plumber salutes you.' : 'Best: ' + highScore}</p>
+      <div class="btn-row">
+        <button id="restartBtn" class="game-btn" type="button">FLUSH AGAIN</button>
+        <button id="quitBtn" class="game-btn secondary" type="button">BAIL OUT</button>
+      </div>
+    `);
+    document.getElementById('restartBtn').addEventListener('click', startGame);
+    document.getElementById('quitBtn').addEventListener('click', showStart);
+  }
+
+  function showPaused() {
+    state = 'paused';
+    renderOverlay(`
+      <h1 class="title" style="font-size:22px;">⏸ PAUSED</h1>
+      <p class="hint">The sewer waits for no one.<br>Come back when you're ready.</p>
+      <div class="btn-row"><button id="resumeBtn" class="game-btn" type="button">RESUME</button></div>
+    `);
+    document.getElementById('resumeBtn').addEventListener('click', () => {
+      hideOverlay();
+      state = 'playing';
+    });
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && state === 'playing') showPaused();
+  });
+
+  // ---------- Input ----------
+  function handleFlapInput() {
+    if (state === 'playing') turd.flap();
+  }
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' && e.code !== 'ArrowUp') return;
+    e.preventDefault();
+    if (state === 'playing') turd.flap();
+  });
+  canvas.addEventListener('mousedown', handleFlapInput);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleFlapInput(); }, { passive: false });
+
+  // ---------- Main loop ----------
+  function update() {
+    turd.update();
+
+    if (turd.y + turd.size * 0.32 >= FLOOR_TOP) {
+      turd.y = FLOOR_TOP - turd.size * 0.32;
       return endGame();
     }
-  }
-  poo.draw();
-  ctx.fillStyle = 'black';
-  ctx.font = '24px sans-serif';
-  ctx.fillText('Score: ' + score, 50, 30);
-  frameId = requestAnimationFrame(gameLoop);
-}
 
-function endGame() {
-  cancelAnimationFrame(frameId);
-  showGameOver();
-}
-
-window.addEventListener('keydown', (e) => {
-  if (overlay.style.display !== 'none') {
-    if (e.code === 'Space') {
-      const restart = document.getElementById('restartBtn');
-      const start = document.getElementById('startBtn');
-      if (restart) restart.click();
-      else if (start) start.click();
+    const speed = difficultySpeed();
+    const last = pipes[pipes.length - 1];
+    if (WIDTH - last.x >= PIPE_SPACING) {
+      pipes.push(makePipe(last.x + PIPE_SPACING, difficultyGap()));
     }
-    return;
-  }
-  if (e.code === 'Space') {
-    poo.flap();
-  } else if (e.code === 'ArrowUp') {
-    poo.nudgeUp();
-  } else if (e.code === 'ArrowDown') {
-    poo.nudgeDown();
-  }
-});
-canvas.addEventListener('click', () => { if (overlay.style.display === 'none') poo.flap(); });
 
-ctx.textBaseline = 'middle';
-ctx.textAlign = 'center';
+    for (let i = pipes.length - 1; i >= 0; i--) {
+      const p = pipes[i];
+      p.x -= speed;
+      if (p.x + PIPE_WIDTH < 0) { pipes.splice(i, 1); continue; }
+      if (!p.passed && p.x + PIPE_WIDTH < turd.x) {
+        p.passed = true;
+        score++;
+        turd.blink();
+        spawnScorePop(turd.x, turd.y - 40);
+        Sound.score();
+      }
+      for (const r of pipeRects(p)) {
+        if (rectsCollide(turd.rect, r)) return endGame();
+      }
+    }
 
-showStart();
+    updateParticles();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    let ox = 0, oy = 0;
+    if (shake.time > 0 && !reduceMotion) {
+      ox = (Math.random() - 0.5) * shake.mag;
+      oy = (Math.random() - 0.5) * shake.mag;
+      shake.time--;
+      shake.mag *= 0.9;
+    }
+    ctx.save();
+    ctx.translate(ox, oy);
+
+    drawFlies(t);
+    for (const p of pipes) drawPipe(p);
+    drawFloor();
+
+    if (state === 'start' || state === 'gameover') {
+      const bob = state === 'start' && !reduceMotion ? turd.y + Math.sin(t * 0.05) * 6 : turd.y;
+      turd.draw(bob);
+    } else {
+      turd.draw();
+    }
+
+    drawParticles();
+
+    ctx.fillStyle = '#0c1c1a';
+    ctx.font = '20px "Press Start 2P", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('💩 ' + score, 14, 14);
+
+    ctx.restore();
+  }
+
+  function loop() {
+    t++;
+    if (state === 'playing') update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  showStart();
+  requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>
