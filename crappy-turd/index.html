@@ -359,16 +359,18 @@
       Sound.flap();
     },
     blink() { this.blinkFrames = 6; },
+    tickBlink() {
+      if (this.blinkTimer <= 0) {
+        if (this.blinkFrames === 0) { this.blinkFrames = 6; this.blinkTimer = 90 + Math.random() * 150; }
+      } else this.blinkTimer--;
+      if (this.blinkFrames > 0) this.blinkFrames--;
+    },
     update() {
       this.vel += GRAVITY;
       this.y += this.vel;
       this.rotation = Math.max(-0.5, Math.min(1.1, this.vel / 12));
       this.squash += (1 - this.squash) * 0.2;
       if (this.y - this.size / 2 < 0) { this.y = this.size / 2; this.vel = 0; }
-      if (this.blinkTimer <= 0) {
-        if (this.blinkFrames === 0) { this.blinkFrames = 6; this.blinkTimer = 90 + Math.random() * 150; }
-      } else this.blinkTimer--;
-      if (this.blinkFrames > 0) this.blinkFrames--;
     },
     draw(idleBob) {
       const drawY = idleBob !== undefined ? idleBob : this.y;
@@ -462,7 +464,8 @@
   }
 
   // ---------- Game state ----------
-  let state = 'start'; // start | playing | paused | gameover
+  let state = 'start'; // start | ready | playing | paused | gameover
+  const READY_PIPE_GAP_BONUS = 26;
   let score = 0;
   let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
   let pipes = [];
@@ -476,7 +479,7 @@
     score = 0;
     turd.x = WIDTH / 4;
     turd.reset();
-    pipes = [makePipe(WIDTH + 400, BASE_PIPE_GAP)];
+    pipes = [makePipe(WIDTH + 400, BASE_PIPE_GAP + READY_PIPE_GAP_BONUS)];
     particles.length = 0;
     shake = { time: 0, mag: 0 };
   }
@@ -509,7 +512,7 @@
   function startGame() {
     hideOverlay();
     resetGame();
-    state = 'playing';
+    state = 'ready';
   }
 
   function endGame() {
@@ -555,12 +558,13 @@
 
   // ---------- Input ----------
   function handleFlapInput() {
+    if (state === 'ready') state = 'playing';
     if (state === 'playing') turd.flap();
   }
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.code !== 'ArrowUp') return;
     e.preventDefault();
-    if (state === 'playing') turd.flap();
+    handleFlapInput();
   });
   canvas.addEventListener('mousedown', handleFlapInput);
   canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleFlapInput(); }, { passive: false });
@@ -616,11 +620,22 @@
     for (const p of pipes) drawPipe(p);
     drawFloor();
 
-    if (state === 'start' || state === 'gameover') {
-      const bob = state === 'start' && !reduceMotion ? turd.y + Math.sin(t * 0.05) * 6 : turd.y;
+    if (state === 'start' || state === 'ready' || state === 'gameover') {
+      const bob = state !== 'gameover' && !reduceMotion ? turd.y + Math.sin(t * 0.05) * 6 : turd.y;
       turd.draw(bob);
     } else {
       turd.draw();
+    }
+
+    if (state === 'ready') {
+      const pulse = 0.55 + Math.sin(t * 0.08) * 0.35;
+      ctx.globalAlpha = reduceMotion ? 0.9 : pulse;
+      ctx.fillStyle = '#ffd700';
+      ctx.font = '14px "Press Start 2P", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('TAP TO FLY', WIDTH / 2, HEIGHT / 2 + 90);
+      ctx.globalAlpha = 1;
     }
 
     drawParticles();
@@ -636,6 +651,7 @@
 
   function loop() {
     t++;
+    turd.tickBlink();
     if (state === 'playing') update();
     draw();
     requestAnimationFrame(loop);
