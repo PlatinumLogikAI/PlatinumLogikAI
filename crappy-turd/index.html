@@ -374,26 +374,60 @@
     },
     draw(idleBob) {
       const drawY = idleBob !== undefined ? idleBob : this.y;
+      const s = this.size;
       ctx.save();
       ctx.translate(this.x, drawY);
       ctx.rotate(idleBob !== undefined ? 0 : this.rotation);
       ctx.scale(1 / this.squash, this.squash);
+
+      // drop shadow
       ctx.beginPath();
-      ctx.ellipse(0, this.size * 0.55, this.size * 0.4, this.size * 0.12, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, s * 0.55, s * 0.4, s * 0.12, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       ctx.fill();
+
+      // hand-drawn body (not the browser's emoji glyph): its exact color and
+      // proportions vary across platforms enough to break pixel-aligned
+      // details like the eyes below, so we own every pixel instead.
       ctx.fillStyle = '#7a4a26';
-      ctx.font = `${this.size}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('💩', 0, 0);
+      ctx.beginPath(); ctx.ellipse(0, s * 0.28, s * 0.40, s * 0.26, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, s * 0.02, s * 0.32, s * 0.24, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -s * 0.22, s * 0.22, s * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(s * 0.04, -s * 0.40, s * 0.11, s * 0.10, 0.3, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#9c6a3e';
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.10, s * 0.28, s * 0.14, s * 0.09, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      const eyeY = -s * 0.02;
+      const eyeDX = s * 0.13;
       if (this.blinkFrames > 0) {
-        ctx.fillStyle = '#8b4513';
-        const w = this.size;
-        const h = this.size;
-        ctx.fillRect(-w * 0.22, -h * 0.28, w * 0.15, h * 0.05);
-        ctx.fillRect(w * 0.07 - w * 0.15, -h * 0.28, w * 0.15, h * 0.05);
+        ctx.strokeStyle = '#2b1a0e';
+        ctx.lineWidth = s * 0.035;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-eyeDX - s * 0.06, eyeY);
+        ctx.lineTo(-eyeDX + s * 0.06, eyeY);
+        ctx.moveTo(eyeDX - s * 0.06, eyeY);
+        ctx.lineTo(eyeDX + s * 0.06, eyeY);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.ellipse(-eyeDX, eyeY, s * 0.085, s * 0.10, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(eyeDX, eyeY, s * 0.085, s * 0.10, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#1c130a';
+        ctx.beginPath(); ctx.arc(-eyeDX, eyeY + s * 0.02, s * 0.04, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(eyeDX, eyeY + s * 0.02, s * 0.04, 0, Math.PI * 2); ctx.fill();
       }
+
+      ctx.strokeStyle = '#2b1a0e';
+      ctx.lineWidth = s * 0.045;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, s * 0.10, s * 0.16, Math.PI * 0.12, Math.PI * 0.88);
+      ctx.stroke();
+
       ctx.restore();
     },
     get rect() {
