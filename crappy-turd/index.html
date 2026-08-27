@@ -191,6 +191,20 @@
   const PICKUP_SIZE = 26;
   const PIPES_PER_PICKUP = 4;
   const SHIELD_INVULN_FRAMES = 45;
+  const CHILI_FLAP_MULT = 1.28;
+  const CHILI_DURATION_FRAMES = 210;
+  const CHILI_MIN_PIPES = 12;
+  const CHILI_MAX_PIPES = 18;
+  const PLUNGER_MIN_SCORE = 8;
+  const PLUNGER_CHANCE = 0.55;
+  const PLUNGER_PEEK_FRAMES = 12;
+  const PLUNGER_EXTEND_FRAMES = 30;
+  const PLUNGER_HOLD_MIN = 30;
+  const PLUNGER_HOLD_MAX = 60;
+  const PLUNGER_IDLE_MIN = 40;
+  const PLUNGER_IDLE_MAX = 140;
+  const PLUNGER_PEEK_PX = 10;
+  const PLUNGER_MAX_PX = 68;
 
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -244,6 +258,8 @@
       },
       shield() { unlock(); tone(700, 1100, 0.06, 'sine', 0.07); setTimeout(() => tone(1100, 1400, 0.08, 'sine', 0.06), 50); },
       shieldBreak() { unlock(); tone(300, 120, 0.18, 'triangle', 0.07); noise(0.15, 0.03); },
+      chili() { unlock(); tone(400, 900, 0.05, 'sawtooth', 0.08); setTimeout(() => tone(900, 600, 0.06, 'square', 0.05), 40); },
+      plungerSquelch() { unlock(); tone(180, 90, 0.08, 'square', 0.05); noise(0.05, 0.02); },
       death() { unlock(); tone(420, 50, 0.55, 'sawtooth', 0.09); noise(0.4, 0.05); },
       toggleMuted() {
         muted = !muted;
@@ -259,11 +275,11 @@
 
   // ---------- Particles ----------
   const particles = [];
-  function spawnPuff(x, y) {
+  function spawnPuff(x, y, color) {
     for (let i = 0; i < 5; i++) {
       particles.push({
         type: 'puff', x, y, vx: -1 - Math.random() * 1.5, vy: (Math.random() - 0.5) * 1.5,
-        life: 0, maxLife: 22 + Math.random() * 10, size: 4 + Math.random() * 4,
+        life: 0, maxLife: 22 + Math.random() * 10, size: 4 + Math.random() * 4, color,
       });
     }
   }
@@ -305,7 +321,7 @@
       const t = p.life / p.maxLife;
       if (p.type === 'puff') {
         ctx.globalAlpha = 1 - t;
-        ctx.fillStyle = '#caa877';
+        ctx.fillStyle = p.color || '#caa877';
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * (1 - t * 0.4), 0, Math.PI * 2);
         ctx.fill();
@@ -366,6 +382,7 @@
     dead: false,
     shielded: false,
     invulnFrames: 0,
+    chiliFrames: 0,
     reset() {
       this.y = HEIGHT / 2;
       this.vel = 0;
@@ -374,11 +391,12 @@
       this.dead = false;
       this.shielded = false;
       this.invulnFrames = 0;
+      this.chiliFrames = 0;
       this.blinkTimer = 90 + Math.random() * 120;
       this.blinkFrames = 0;
     },
     flap() {
-      this.vel = FLAP_VEL;
+      this.vel = FLAP_VEL * (this.chiliFrames > 0 ? CHILI_FLAP_MULT : 1);
       this.squash = 1.25;
       spawnPuff(this.x - this.size * 0.3, this.y + this.size * 0.3);
       Sound.flap();
@@ -397,6 +415,10 @@
       this.squash += (1 - this.squash) * 0.2;
       if (this.y - this.size / 2 < 0) { this.y = this.size / 2; this.vel = Math.abs(this.vel) * 0.4; }
       if (this.invulnFrames > 0) this.invulnFrames--;
+      if (this.chiliFrames > 0) {
+        this.chiliFrames--;
+        if (t % 3 === 0) spawnPuff(this.x - this.size * 0.3, this.y + this.size * 0.25, '#ff6a2f');
+      }
     },
     draw(idleBob) {
       const drawY = idleBob !== undefined ? idleBob : this.y;
@@ -466,6 +488,12 @@
         ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
       }
+      if (this.chiliFrames > 0) {
+        const r2 = s * 0.58 + Math.sin(t * 0.3) * 2;
+        ctx.strokeStyle = 'rgba(255,120,40,0.7)';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, r2, 0, Math.PI * 2); ctx.stroke();
+      }
 
       ctx.restore();
     },
@@ -478,12 +506,55 @@
   // ---------- Pipes (sewer-plumbing reskin) ----------
   function makePipe(x, gap) {
     const margin = 46;
-    return {
+    const pipe = {
       x,
       gap,
       top: margin + Math.random() * (FLOOR_TOP - gap - margin * 2),
       passed: false,
+      plunger: null,
     };
+    pipesSincePlunger++;
+    if (score >= PLUNGER_MIN_SCORE && pipesSincePlunger >= 2 && Math.random() < PLUNGER_CHANCE) {
+      pipe.plunger = {
+        side: Math.random() < 0.5 ? 'top' : 'bottom',
+        phase: 'idle',
+        timer: 0,
+      };
+      pipesSincePlunger = 0;
+    }
+    return pipe;
+  }
+  // Idle->peek is triggered by the pipe's proximity to the turd (not a
+  // fixed delay since spawn) so the dangerous phase reliably lines up with
+  // the pipe actually being reachable, regardless of current scroll speed -
+  // a time-based idle delay could otherwise fire after the pipe had already
+  // scrolled past the player.
+  function updatePlunger(p) {
+    const pl = p.plunger;
+    if (pl.phase === 'idle') {
+      if (p.x <= turd.x + 250) { pl.phase = 'peek'; pl.timer = PLUNGER_PEEK_FRAMES; Sound.plungerSquelch(); }
+      return;
+    }
+    pl.timer--;
+    if (pl.timer > 0) return;
+    if (pl.phase === 'peek') { pl.phase = 'extend'; pl.timer = PLUNGER_EXTEND_FRAMES; }
+    else if (pl.phase === 'extend') { pl.phase = 'hold'; pl.timer = PLUNGER_HOLD_MIN + Math.random() * (PLUNGER_HOLD_MAX - PLUNGER_HOLD_MIN); }
+    else if (pl.phase === 'hold') { pl.phase = 'retract'; pl.timer = PLUNGER_EXTEND_FRAMES; }
+    else { pl.phase = 'done'; pl.timer = Infinity; }
+  }
+  function plungerExtentPx(pl) {
+    if (!pl || pl.phase === 'idle' || pl.phase === 'done') return 0;
+    if (pl.phase === 'peek') return PLUNGER_PEEK_PX;
+    if (pl.phase === 'hold') return PLUNGER_MAX_PX;
+    const prog = pl.phase === 'extend' ? 1 - pl.timer / PLUNGER_EXTEND_FRAMES : pl.timer / PLUNGER_EXTEND_FRAMES;
+    return PLUNGER_PEEK_PX + prog * (PLUNGER_MAX_PX - PLUNGER_PEEK_PX);
+  }
+  function plungerRect(p) {
+    if (!p.plunger) return null;
+    const ext = plungerExtentPx(p.plunger);
+    if (ext <= PLUNGER_PEEK_PX) return null;
+    if (p.plunger.side === 'top') return { x: p.x, y: p.top, w: PIPE_WIDTH, h: ext };
+    return { x: p.x, y: p.top + p.gap - ext, w: PIPE_WIDTH, h: ext };
   }
   function lerpColor(hexA, hexB, t) {
     const a = parseInt(hexA.slice(1), 16), b = parseInt(hexB.slice(1), 16);
@@ -492,10 +563,12 @@
     const r = Math.round(ar + (br - ar) * t), g = Math.round(ag + (bg - ag) * t), bl = Math.round(ab + (bb - ab) * t);
     return `rgb(${r},${g},${bl})`;
   }
-  function drawPipeSegment(x, y, w, h, flip) {
+  function drawPipeSegment(x, y, w, h, flip, warn) {
     // pipes gradually redden as the run gets harder - a visible tell for
-    // the difficulty ramp, not just an unexplained speed-up
-    const heat = Math.min(score / 35, 1);
+    // the difficulty ramp, not just an unexplained speed-up. Chili adds a
+    // pulsing flash on top, and an active plunger darkens just its side.
+    const chiliFlash = turd.chiliFrames > 0 ? (0.5 + Math.sin(t * 0.4) * 0.5) * 0.6 : 0;
+    const heat = Math.min(score / 35 + chiliFlash + (warn ? 0.25 : 0), 1);
     const capH = 22;
     const bodyGrad = ctx.createLinearGradient(x, 0, x + w, 0);
     bodyGrad.addColorStop(0, lerpColor('#396745', '#6e2f22', heat));
@@ -520,9 +593,32 @@
     ctx.strokeRect(x - 5, capY, w + 10, capH);
   }
   function drawPipe(p) {
-    if (p.top > 0) drawPipeSegment(p.x, 0, PIPE_WIDTH, p.top, true);
+    const plungerActive = p.plunger && p.plunger.phase !== 'idle' && p.plunger.phase !== 'done';
+    const topWarn = !!(plungerActive && p.plunger.side === 'top');
+    const botWarn = !!(plungerActive && p.plunger.side === 'bottom');
+    if (p.top > 0) drawPipeSegment(p.x, 0, PIPE_WIDTH, p.top, true, topWarn);
     const bottomY = p.top + p.gap;
-    if (FLOOR_TOP - bottomY > 0) drawPipeSegment(p.x, bottomY, PIPE_WIDTH, FLOOR_TOP - bottomY, false);
+    if (FLOOR_TOP - bottomY > 0) drawPipeSegment(p.x, bottomY, PIPE_WIDTH, FLOOR_TOP - bottomY, false, botWarn);
+    drawPlunger(p);
+  }
+  function drawPlunger(p) {
+    if (!p.plunger) return;
+    const ext = plungerExtentPx(p.plunger);
+    if (ext <= 0) return;
+    const cx = p.x + PIPE_WIDTH / 2;
+    const stemW = 8;
+    const tipY = p.plunger.side === 'top' ? p.top + ext : p.top + p.gap - ext;
+    const stemY = p.plunger.side === 'top' ? p.top : tipY;
+    ctx.fillStyle = '#7a5230';
+    ctx.fillRect(cx - stemW / 2, stemY, stemW, ext);
+    ctx.fillStyle = '#c8402e';
+    ctx.beginPath();
+    ctx.ellipse(cx, tipY, 16, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8f2418';
+    ctx.beginPath();
+    ctx.ellipse(cx, tipY + (p.plunger.side === 'top' ? -2 : 2), 10, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
   function pipeRects(p) {
     return [
@@ -565,6 +661,34 @@
 
     ctx.restore();
   }
+  function drawChili(pu) {
+    const bob = Math.sin(t * 0.08 + pu.seed) * 3;
+    ctx.save();
+    ctx.translate(pu.x, pu.y + bob);
+    ctx.rotate(-0.35);
+
+    ctx.beginPath();
+    ctx.ellipse(0, PICKUP_SIZE * 0.42, PICKUP_SIZE * 0.38, PICKUP_SIZE * 0.12, 0.35, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fill();
+
+    ctx.fillStyle = '#c9321f';
+    ctx.beginPath();
+    ctx.ellipse(0, PICKUP_SIZE * 0.05, PICKUP_SIZE * 0.15, PICKUP_SIZE * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#e85a3a';
+    ctx.beginPath();
+    ctx.ellipse(-PICKUP_SIZE * 0.05, -PICKUP_SIZE * 0.05, PICKUP_SIZE * 0.06, PICKUP_SIZE * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#3f7a34';
+    ctx.beginPath();
+    ctx.ellipse(0, -PICKUP_SIZE * 0.42, PICKUP_SIZE * 0.09, PICKUP_SIZE * 0.09, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
 
   // ---------- Floor (bathroom tile) ----------
   function drawFloor() {
@@ -589,6 +713,9 @@
   let pipes = [];
   let pickups = [];
   let pipesSincePickup = 0;
+  let pipesSinceChili = 0;
+  let nextChiliAt = CHILI_MIN_PIPES + Math.floor(Math.random() * (CHILI_MAX_PIPES - CHILI_MIN_PIPES + 1));
+  let pipesSincePlunger = 99;
   let shake = { time: 0, mag: 0 };
   let t = 0;
 
@@ -599,9 +726,12 @@
     score = 0;
     turd.x = WIDTH / 4;
     turd.reset();
+    pipesSincePlunger = 99;
     pipes = [makePipe(WIDTH + 400, BASE_PIPE_GAP + READY_PIPE_GAP_BONUS)];
     pickups = [];
     pipesSincePickup = 0;
+    pipesSinceChili = 0;
+    nextChiliAt = CHILI_MIN_PIPES + Math.floor(Math.random() * (CHILI_MAX_PIPES - CHILI_MIN_PIPES + 1));
     particles.length = 0;
     shake = { time: 0, mag: 0 };
   }
@@ -649,7 +779,11 @@
     state = 'ready';
   }
 
-  function endGame() {
+  const DEATH_LINES = {
+    plungerTop: "You got plunged.",
+    plungerBottom: "You can't handle it.",
+  };
+  function endGame(reason) {
     state = 'gameover';
     turd.dead = true;
     spawnSplat(turd.x, turd.y);
@@ -660,8 +794,10 @@
       highScore = score;
       localStorage.setItem('ct_high_score', String(highScore));
     }
+    const deathLine = DEATH_LINES[reason];
     renderOverlay(`
       <h1 class="title" style="font-size:22px;">🚽 FLUSHED! 🚽</h1>
+      ${deathLine ? `<p class="hint">${deathLine}</p>` : ''}
       <p class="stat big">Score: ${score}</p>
       <p class="stat ${isRecord ? 'new-record' : ''}">${isRecord ? 'NEW RECORD! The plumber salutes you.' : 'Best: ' + highScore}</p>
       <div class="btn-row">
@@ -720,15 +856,22 @@
       const newPipe = makePipe(last.x + PIPE_SPACING, difficultyGap());
       pipes.push(newPipe);
       pipesSincePickup++;
+      pipesSinceChili++;
+      const gapCenter = { x: newPipe.x + PIPE_WIDTH / 2, y: newPipe.top + newPipe.gap / 2 };
       if (pipesSincePickup >= PIPES_PER_PICKUP && pickups.length === 0) {
-        pickups.push({ x: newPipe.x + PIPE_WIDTH / 2, y: newPipe.top + newPipe.gap / 2, seed: Math.random() * 10 });
+        pickups.push({ type: 'tp', x: gapCenter.x, y: gapCenter.y, seed: Math.random() * 10 });
         pipesSincePickup = 0;
+      } else if (pipesSinceChili >= nextChiliAt && pickups.length === 0) {
+        pickups.push({ type: 'chili', x: gapCenter.x, y: gapCenter.y, seed: Math.random() * 10 });
+        pipesSinceChili = 0;
+        nextChiliAt = CHILI_MIN_PIPES + Math.floor(Math.random() * (CHILI_MAX_PIPES - CHILI_MIN_PIPES + 1));
       }
     }
 
     for (let i = pipes.length - 1; i >= 0; i--) {
       const p = pipes[i];
       p.x -= speed;
+      if (p.plunger) updatePlunger(p);
       if (p.x + PIPE_WIDTH < 0) { pipes.splice(i, 1); continue; }
       if (!p.passed && p.x + PIPE_WIDTH < turd.x) {
         p.passed = true;
@@ -748,6 +891,10 @@
         for (const r of pipeRects(p)) {
           if (rectsCollide(turd.rect, r)) { if (!handleHit()) return endGame(); }
         }
+        const pr = plungerRect(p);
+        if (pr && rectsCollide(turd.rect, pr)) {
+          if (!handleHit()) return endGame(p.plunger.side === 'top' ? 'plungerTop' : 'plungerBottom');
+        }
       }
     }
 
@@ -758,10 +905,17 @@
       const dx = pu.x - turd.x, dy = pu.y - turd.y;
       if (Math.hypot(dx, dy) < turd.size * 0.42 + PICKUP_SIZE * 0.42) {
         pickups.splice(i, 1);
-        turd.shielded = true;
-        spawnBurst(pu.x, pu.y, '#ffffff');
-        spawnScorePop(turd.x, turd.y - 40, 'SHIELDED!', '#bfe7ff');
-        Sound.shield();
+        if (pu.type === 'chili') {
+          turd.chiliFrames = CHILI_DURATION_FRAMES;
+          spawnBurst(pu.x, pu.y, '#ff6a2f');
+          spawnScorePop(turd.x, turd.y - 40, 'SPICY!', '#ff8a4d');
+          Sound.chili();
+        } else {
+          turd.shielded = true;
+          spawnBurst(pu.x, pu.y, '#ffffff');
+          spawnScorePop(turd.x, turd.y - 40, 'SHIELDED!', '#bfe7ff');
+          Sound.shield();
+        }
       }
     }
 
@@ -784,7 +938,7 @@
     drawFlies(t);
     for (const p of pipes) drawPipe(p);
     drawFloor();
-    for (const pu of pickups) drawPickup(pu);
+    for (const pu of pickups) { if (pu.type === 'chili') drawChili(pu); else drawPickup(pu); }
 
     if (state === 'start' || state === 'ready' || state === 'gameover') {
       const bob = state !== 'gameover' && !reduceMotion ? turd.y + Math.sin(t * 0.05) * 6 : turd.y;
