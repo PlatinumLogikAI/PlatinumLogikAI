@@ -948,12 +948,15 @@
     }
 
     if (state === 'ready') {
-      const pulse = 0.55 + Math.sin(t * 0.08) * 0.35;
-      ctx.globalAlpha = reduceMotion ? 0.9 : pulse;
-      ctx.fillStyle = '#ffd700';
+      const pulse = 0.85 + Math.sin(t * 0.08) * 0.15;
+      ctx.globalAlpha = reduceMotion ? 1 : pulse;
       ctx.font = '14px "Press Start 2P", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(12,28,26,0.85)';
+      ctx.strokeText('TAP TO FLY', WIDTH / 2, HEIGHT / 2 + 90);
+      ctx.fillStyle = '#ffd700';
       ctx.fillText('TAP TO FLY', WIDTH / 2, HEIGHT / 2 + 90);
       ctx.globalAlpha = 1;
     }
