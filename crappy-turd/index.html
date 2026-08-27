@@ -701,8 +701,34 @@
         ctx.fillRect(x, y, tile, tile);
       }
     }
-    ctx.fillStyle = '#384c46';
-    ctx.fillRect(0, FLOOR_TOP - 6, WIDTH, 6);
+    drawWaterline();
+  }
+  // Traces the floor's actual kill-plane (FLOOR_TOP) so the danger zone
+  // reads as water you fall into, not an arbitrary invisible boundary.
+  function drawWaterline() {
+    const wavelength = 42;
+    const amp = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, FLOOR_TOP + 10);
+    for (let x = 0; x <= WIDTH; x += 8) {
+      ctx.lineTo(x, FLOOR_TOP - 4 + Math.sin(x / wavelength + t * 0.05) * amp);
+    }
+    ctx.lineTo(WIDTH, FLOOR_TOP + 10);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(94, 178, 209, 0.32)';
+    ctx.fill();
+
+    ctx.beginPath();
+    for (let x = 0; x <= WIDTH; x += 8) {
+      const y = FLOOR_TOP - 4 + Math.sin(x / wavelength + t * 0.05) * amp;
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = 'rgba(219, 247, 255, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#2a4a52';
+    ctx.fillRect(0, FLOOR_TOP + 8, WIDTH, 3);
   }
 
   // ---------- Game state ----------
@@ -786,7 +812,11 @@
   function endGame(reason) {
     state = 'gameover';
     turd.dead = true;
-    spawnSplat(turd.x, turd.y);
+    if (reason === 'floor') {
+      spawnBurst(turd.x, FLOOR_TOP, '#bfe9fb');
+    } else {
+      spawnSplat(turd.x, turd.y);
+    }
     triggerShake(7);
     Sound.death();
     const isRecord = score > highScore;
@@ -846,7 +876,7 @@
     if (turd.y + turd.size * 0.32 >= FLOOR_TOP) {
       turd.y = FLOOR_TOP - turd.size * 0.32;
       if (turd.invulnFrames <= 0) {
-        if (!handleHit()) return endGame();
+        if (!handleHit()) return endGame('floor');
       }
     }
 
