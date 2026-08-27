@@ -732,7 +732,7 @@
   }
 
   // ---------- Game state ----------
-  let state = 'start'; // start | ready | playing | paused | gameover
+  let state = 'start'; // start | ready | playing | paused | dying | gameover
   const READY_PIPE_GAP_BONUS = 26;
   let score = 0;
   let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
@@ -809,8 +809,10 @@
     plungerTop: "You got plunged.",
     plungerBottom: "You can't handle it.",
   };
+  const GAME_OVER_DELAY_MS = 550;
   function endGame(reason) {
-    state = 'gameover';
+    if (state === 'dying' || state === 'gameover') return;
+    state = 'dying'; // let the impact play out before the overlay covers it
     turd.dead = true;
     if (reason === 'floor') {
       spawnBurst(turd.x, FLOOR_TOP, '#bfe9fb');
@@ -819,6 +821,10 @@
     }
     triggerShake(7);
     Sound.death();
+    setTimeout(() => showGameOver(reason), GAME_OVER_DELAY_MS);
+  }
+  function showGameOver(reason) {
+    state = 'gameover';
     const isRecord = score > highScore;
     if (isRecord) {
       highScore = score;
@@ -948,8 +954,6 @@
         }
       }
     }
-
-    updateParticles();
   }
 
   function draw() {
@@ -1006,6 +1010,7 @@
     t++;
     turd.tickBlink();
     if (state === 'playing') update();
+    updateParticles();
     draw();
     requestAnimationFrame(loop);
   }
