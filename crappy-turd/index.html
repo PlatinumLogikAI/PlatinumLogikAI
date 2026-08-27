@@ -188,6 +188,9 @@
   const PIPE_SPACING = 250;
   const FLOOR_HEIGHT = 54;
   const FLOOR_TOP = HEIGHT - FLOOR_HEIGHT;
+  const PICKUP_SIZE = 26;
+  const PIPES_PER_PICKUP = 4;
+  const SHIELD_INVULN_FRAMES = 45;
 
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -233,6 +236,14 @@
     return {
       flap() { unlock(); tone(260, 130, 0.09, 'square', 0.06); },
       score() { unlock(); tone(660, 880, 0.07, 'sine', 0.08); setTimeout(() => tone(880, 990, 0.09, 'sine', 0.07), 60); },
+      milestone() {
+        unlock();
+        tone(523, 659, 0.08, 'sine', 0.09);
+        setTimeout(() => tone(659, 784, 0.08, 'sine', 0.09), 70);
+        setTimeout(() => tone(784, 988, 0.12, 'sine', 0.09), 140);
+      },
+      shield() { unlock(); tone(700, 1100, 0.06, 'sine', 0.07); setTimeout(() => tone(1100, 1400, 0.08, 'sine', 0.06), 50); },
+      shieldBreak() { unlock(); tone(300, 120, 0.18, 'triangle', 0.07); noise(0.15, 0.03); },
       death() { unlock(); tone(420, 50, 0.55, 'sawtooth', 0.09); noise(0.4, 0.05); },
       toggleMuted() {
         muted = !muted;
@@ -266,8 +277,18 @@
       });
     }
   }
-  function spawnScorePop(x, y) {
-    particles.push({ type: 'pop', x, y, vx: 0, vy: -0.8, life: 0, maxLife: 45, text: '+1' });
+  function spawnBurst(x, y, color) {
+    for (let i = 0; i < 20; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const spd = 2 + Math.random() * 4;
+      particles.push({
+        type: 'splat', x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 1,
+        life: 0, maxLife: 30 + Math.random() * 18, size: 3 + Math.random() * 4, color,
+      });
+    }
+  }
+  function spawnScorePop(x, y, text, color) {
+    particles.push({ type: 'pop', x, y, vx: 0, vy: -0.8, life: 0, maxLife: 45, text: text || '+1', color: color || '#ffd700' });
   }
   function updateParticles() {
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -290,13 +311,13 @@
         ctx.fill();
       } else if (p.type === 'splat') {
         ctx.globalAlpha = 1 - t;
-        ctx.fillStyle = '#5c3719';
+        ctx.fillStyle = p.color || '#5c3719';
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * (1 - t * 0.6), 0, Math.PI * 2);
         ctx.fill();
       } else if (p.type === 'pop') {
         ctx.globalAlpha = 1 - t;
-        ctx.fillStyle = '#ffd700';
+        ctx.fillStyle = p.color || '#ffd700';
         ctx.font = '16px "Press Start 2P", monospace';
         ctx.textAlign = 'center';
         ctx.fillText(p.text, p.x, p.y);
@@ -343,12 +364,16 @@
     blinkTimer: 0,
     blinkFrames: 0,
     dead: false,
+    shielded: false,
+    invulnFrames: 0,
     reset() {
       this.y = HEIGHT / 2;
       this.vel = 0;
       this.rotation = 0;
       this.squash = 1;
       this.dead = false;
+      this.shielded = false;
+      this.invulnFrames = 0;
       this.blinkTimer = 90 + Math.random() * 120;
       this.blinkFrames = 0;
     },
@@ -370,7 +395,8 @@
       this.y += this.vel;
       this.rotation = Math.max(-0.5, Math.min(1.1, this.vel / 12));
       this.squash += (1 - this.squash) * 0.2;
-      if (this.y - this.size / 2 < 0) { this.y = this.size / 2; this.vel = 0; }
+      if (this.y - this.size / 2 < 0) { this.y = this.size / 2; this.vel = Math.abs(this.vel) * 0.4; }
+      if (this.invulnFrames > 0) this.invulnFrames--;
     },
     draw(idleBob) {
       const drawY = idleBob !== undefined ? idleBob : this.y;
@@ -379,6 +405,8 @@
       ctx.translate(this.x, drawY);
       ctx.rotate(idleBob !== undefined ? 0 : this.rotation);
       ctx.scale(1 / this.squash, this.squash);
+
+      if (this.invulnFrames > 0 && Math.floor(t / 3) % 2 === 0) ctx.globalAlpha = 0.4;
 
       // drop shadow
       ctx.beginPath();
@@ -428,6 +456,17 @@
       ctx.arc(0, s * 0.10, s * 0.16, Math.PI * 0.12, Math.PI * 0.88);
       ctx.stroke();
 
+      ctx.globalAlpha = 1;
+      if (this.shielded) {
+        const r = s * 0.62 + Math.sin(t * 0.15) * 2;
+        ctx.strokeStyle = 'rgba(200,230,255,0.4)';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      }
+
       ctx.restore();
     },
     get rect() {
@@ -446,23 +485,33 @@
       passed: false,
     };
   }
+  function lerpColor(hexA, hexB, t) {
+    const a = parseInt(hexA.slice(1), 16), b = parseInt(hexB.slice(1), 16);
+    const ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
+    const br = (b >> 16) & 255, bg = (b >> 8) & 255, bb = b & 255;
+    const r = Math.round(ar + (br - ar) * t), g = Math.round(ag + (bg - ag) * t), bl = Math.round(ab + (bb - ab) * t);
+    return `rgb(${r},${g},${bl})`;
+  }
   function drawPipeSegment(x, y, w, h, flip) {
+    // pipes gradually redden as the run gets harder - a visible tell for
+    // the difficulty ramp, not just an unexplained speed-up
+    const heat = Math.min(score / 35, 1);
     const capH = 22;
     const bodyGrad = ctx.createLinearGradient(x, 0, x + w, 0);
-    bodyGrad.addColorStop(0, '#396745');
-    bodyGrad.addColorStop(0.45, '#4f8a5b');
-    bodyGrad.addColorStop(0.55, '#63a06f');
-    bodyGrad.addColorStop(1, '#396745');
+    bodyGrad.addColorStop(0, lerpColor('#396745', '#6e2f22', heat));
+    bodyGrad.addColorStop(0.45, lerpColor('#4f8a5b', '#9c4530', heat));
+    bodyGrad.addColorStop(0.55, lerpColor('#63a06f', '#c25b3f', heat));
+    bodyGrad.addColorStop(1, lerpColor('#396745', '#6e2f22', heat));
     ctx.fillStyle = bodyGrad;
     ctx.fillRect(x, y, w, h);
 
     const capY = flip ? y + h - capH : y;
-    ctx.fillStyle = '#2f5238';
+    ctx.fillStyle = lerpColor('#2f5238', '#5c2418', heat);
     ctx.fillRect(x - 5, capY, w + 10, capH);
     const capGrad = ctx.createLinearGradient(x - 5, 0, x + w + 5, 0);
-    capGrad.addColorStop(0, '#43744f');
-    capGrad.addColorStop(0.5, '#7fbf8c');
-    capGrad.addColorStop(1, '#43744f');
+    capGrad.addColorStop(0, lerpColor('#43744f', '#7a3524', heat));
+    capGrad.addColorStop(0.5, lerpColor('#7fbf8c', '#b06a4a', heat));
+    capGrad.addColorStop(1, lerpColor('#43744f', '#7a3524', heat));
     ctx.fillStyle = capGrad;
     ctx.fillRect(x - 5, capY + 3, w + 10, capH - 6);
 
@@ -480,6 +529,41 @@
       { x: p.x, y: 0, w: PIPE_WIDTH, h: p.top },
       { x: p.x, y: p.top + p.gap, w: PIPE_WIDTH, h: FLOOR_TOP - (p.top + p.gap) },
     ];
+  }
+
+  // ---------- Pickups (TP-roll shield) ----------
+  function drawPickup(pu) {
+    const bob = Math.sin(t * 0.08 + pu.seed) * 3;
+    ctx.save();
+    ctx.translate(pu.x, pu.y + bob);
+
+    ctx.beginPath();
+    ctx.ellipse(0, PICKUP_SIZE * 0.5, PICKUP_SIZE * 0.4, PICKUP_SIZE * 0.12, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, PICKUP_SIZE * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fdf8ef';
+    ctx.fill();
+    ctx.strokeStyle = '#d8cfc0';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(200,190,170,0.6)';
+    ctx.lineWidth = 1;
+    for (let r = PICKUP_SIZE * 0.16; r < PICKUP_SIZE * 0.48; r += PICKUP_SIZE * 0.11) {
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(0, 0, PICKUP_SIZE * 0.18, 0, Math.PI * 2);
+    ctx.fillStyle = '#c9a98a';
+    ctx.fill();
+
+    ctx.restore();
   }
 
   // ---------- Floor (bathroom tile) ----------
@@ -503,6 +587,8 @@
   let score = 0;
   let highScore = Number(localStorage.getItem('ct_high_score')) || 0;
   let pipes = [];
+  let pickups = [];
+  let pipesSincePickup = 0;
   let shake = { time: 0, mag: 0 };
   let t = 0;
 
@@ -514,6 +600,8 @@
     turd.x = WIDTH / 4;
     turd.reset();
     pipes = [makePipe(WIDTH + 400, BASE_PIPE_GAP + READY_PIPE_GAP_BONUS)];
+    pickups = [];
+    pipesSincePickup = 0;
     particles.length = 0;
     shake = { time: 0, mag: 0 };
   }
@@ -523,6 +611,18 @@
   }
 
   function triggerShake(mag) { shake = { time: 16, mag }; }
+
+  // Absorbs one hit if a shield is active; returns whether it was absorbed.
+  function handleHit() {
+    if (!turd.shielded) return false;
+    turd.shielded = false;
+    turd.invulnFrames = SHIELD_INVULN_FRAMES;
+    turd.vel = -5;
+    triggerShake(4);
+    spawnBurst(turd.x, turd.y, '#ffffff');
+    Sound.shieldBreak();
+    return true;
+  }
 
   function renderOverlay(html) {
     overlay.innerHTML = html;
@@ -609,13 +709,21 @@
 
     if (turd.y + turd.size * 0.32 >= FLOOR_TOP) {
       turd.y = FLOOR_TOP - turd.size * 0.32;
-      return endGame();
+      if (turd.invulnFrames <= 0) {
+        if (!handleHit()) return endGame();
+      }
     }
 
     const speed = difficultySpeed();
     const last = pipes[pipes.length - 1];
     if (WIDTH - last.x >= PIPE_SPACING) {
-      pipes.push(makePipe(last.x + PIPE_SPACING, difficultyGap()));
+      const newPipe = makePipe(last.x + PIPE_SPACING, difficultyGap());
+      pipes.push(newPipe);
+      pipesSincePickup++;
+      if (pipesSincePickup >= PIPES_PER_PICKUP && pickups.length === 0) {
+        pickups.push({ x: newPipe.x + PIPE_WIDTH / 2, y: newPipe.top + newPipe.gap / 2, seed: Math.random() * 10 });
+        pipesSincePickup = 0;
+      }
     }
 
     for (let i = pipes.length - 1; i >= 0; i--) {
@@ -626,11 +734,34 @@
         p.passed = true;
         score++;
         turd.blink();
-        spawnScorePop(turd.x, turd.y - 40);
-        Sound.score();
+        if (score % 10 === 0) {
+          spawnScorePop(turd.x, turd.y - 40, `🔥 ${score}!`, '#ff9d4d');
+          spawnBurst(turd.x, turd.y, '#ffd700');
+          triggerShake(3);
+          Sound.milestone();
+        } else {
+          spawnScorePop(turd.x, turd.y - 40);
+          Sound.score();
+        }
       }
-      for (const r of pipeRects(p)) {
-        if (rectsCollide(turd.rect, r)) return endGame();
+      if (turd.invulnFrames <= 0) {
+        for (const r of pipeRects(p)) {
+          if (rectsCollide(turd.rect, r)) { if (!handleHit()) return endGame(); }
+        }
+      }
+    }
+
+    for (let i = pickups.length - 1; i >= 0; i--) {
+      const pu = pickups[i];
+      pu.x -= speed;
+      if (pu.x < -30) { pickups.splice(i, 1); continue; }
+      const dx = pu.x - turd.x, dy = pu.y - turd.y;
+      if (Math.hypot(dx, dy) < turd.size * 0.42 + PICKUP_SIZE * 0.42) {
+        pickups.splice(i, 1);
+        turd.shielded = true;
+        spawnBurst(pu.x, pu.y, '#ffffff');
+        spawnScorePop(turd.x, turd.y - 40, 'SHIELDED!', '#bfe7ff');
+        Sound.shield();
       }
     }
 
@@ -653,6 +784,7 @@
     drawFlies(t);
     for (const p of pipes) drawPipe(p);
     drawFloor();
+    for (const pu of pickups) drawPickup(pu);
 
     if (state === 'start' || state === 'ready' || state === 'gameover') {
       const bob = state !== 'gameover' && !reduceMotion ? turd.y + Math.sin(t * 0.05) * 6 : turd.y;
