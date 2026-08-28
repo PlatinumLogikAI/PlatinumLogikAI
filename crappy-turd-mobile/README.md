@@ -87,10 +87,11 @@ environment with the Android SDK and unrestricted network, i.e. your machine.
   (smallest launcher size, mdpi) — still reads clearly. A separate
   512×512 Play Store listing icon is at `store-assets/icon-512.png`.
 
+- **Feature graphic** — done. `store-assets/feature-graphic.png` (1024×500,
+  the exact size Play Console requires for the listing page).
+
 ## Still to do (not started)
 
-- **Feature graphic** (1024×500, required for the Play Store listing page) —
-  not started.
 - Everything Play Console itself (store listing, screenshots, content
   rating, privacy declarations) — no API access to that from here, it's
   browser-only on your Google account.
