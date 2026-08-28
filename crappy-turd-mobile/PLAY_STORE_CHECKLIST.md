@@ -83,21 +83,18 @@ ads SDK.
 → In the Data Safety form: **"No data collected"**, all categories left
 unchecked. This is accurate, not a shortcut.
 
-## 6. Privacy policy — not yet done, this is a real gap
+## 6. Privacy policy — done, one small edit needed
 
-Play Console requires a privacy policy URL even when the answer is "we
-don't collect anything" — the policy just needs to say so. This project
-doesn't have one hosted yet.
+Live at `crappy-turd/privacy.html`, deployed via the same Netlify git
+integration as the game — once this branch syncs, it's reachable at
+`games.crappyturd.platinumlogik.com/privacy.html`. States plainly that the
+game collects no personal data and explains the two `localStorage` items
+(mute preference, high score), matching what the game code actually does.
 
-The simplest fix: a one-page static HTML file saying "Crappy Turd collects
-no personal data; the only local storage used is your mute setting and high
-score, stored on your device only," deployed alongside the game at
-`games.crappyturd.platinumlogik.com/privacy.html` (Netlify already
-auto-deploys this branch, so this is just adding one file to `crappy-turd/`
-and pushing).
-
-**Say the word and I'll draft and deploy that page** — it's a five-minute
-addition, not a Play-Console-only task.
+**Before you paste the URL into Play Console:** open the file and replace
+the placeholder contact line (`[add a support email here before
+publishing]`) with a real support email — didn't want to publish a personal
+address to a public policy page without you choosing it.
 
 ## 7. Pricing & distribution
 
