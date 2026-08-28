@@ -95,6 +95,8 @@ environment with the Android SDK and unrestricted network, i.e. your machine.
 
 ## Still to do (not started)
 
-- Everything Play Console itself (store listing, screenshots, content
-  rating, privacy declarations) — no API access to that from here, it's
-  browser-only on your Google account.
+- Everything Play Console itself (store listing, content rating, data
+  safety, privacy policy, closed testing) — no API access to that from
+  here, it's browser-only on your Google account. Full step-by-step
+  checklist, including draft store-listing copy and the current data-safety
+  answer, is in [`PLAY_STORE_CHECKLIST.md`](./PLAY_STORE_CHECKLIST.md).
