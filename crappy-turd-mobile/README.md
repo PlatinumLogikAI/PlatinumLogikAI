@@ -77,11 +77,20 @@ environment with the Android SDK and unrestricted network, i.e. your machine.
    publishing — start rounding up testers now, that's the real bottleneck,
    not the build.
 
+- **App icon** — done. Reuses the game's exact hand-drawn character art
+  (same drawing code as `turd.draw()` in `index.html`) on a navy `#122038`
+  background with a soft gold glow. All density buckets regenerated
+  (`mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/{ic_launcher, ic_launcher_round,
+  ic_launcher_foreground}.png`), the adaptive-icon background color updated
+  to match (`values/ic_launcher_background.xml`), and the old generic
+  Capacitor template vector art removed. Verified at true 48px size
+  (smallest launcher size, mdpi) — still reads clearly. A separate
+  512×512 Play Store listing icon is at `store-assets/icon-512.png`.
+
 ## Still to do (not started)
 
-- **App icon / feature graphic** — currently the generic default Capacitor
-  template icon. Worth a proper pass reusing the game's hand-drawn art style
-  before this goes anywhere near a real listing.
+- **Feature graphic** (1024×500, required for the Play Store listing page) —
+  not started.
 - Everything Play Console itself (store listing, screenshots, content
   rating, privacy declarations) — no API access to that from here, it's
   browser-only on your Google account.
