@@ -29,6 +29,22 @@ outside the native shell (see "What was added to the game file" below).
   device, silently does nothing in a normal browser.
 - Plugins installed: `@capacitor/app`, `@capacitor/haptics`,
   `@capacitor/status-bar`, `@capacitor/splash-screen`.
+- **App icon** — reuses the game's exact hand-drawn character art (same
+  drawing code as `turd.draw()` in `index.html`) on a navy `#122038`
+  background with a soft gold glow. All density buckets regenerated
+  (`mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/{ic_launcher, ic_launcher_round,
+  ic_launcher_foreground}.png`), the adaptive-icon background color updated
+  to match (`values/ic_launcher_background.xml`), and the old generic
+  Capacitor template vector art removed. Verified at true 48px size
+  (smallest launcher size, mdpi) — still reads clearly. A separate
+  512×512 Play Store listing icon is at `store-assets/icon-512.png`.
+- **Feature graphic** — `store-assets/feature-graphic.png` (1024×500, the
+  exact size Play Console requires for the listing page).
+- **Store screenshots** — six portrait shots (840×1260, real device
+  resolution — 2x the game's 400×600 canvas) at `store-assets/screenshots/`:
+  title screen, ready/"tap to fly" prompt, mid-flight gameplay with pipes,
+  TP shield active, chili power active, and the "FLUSHED!" game-over screen.
+  Captured headless from the actual game code (not mocked up).
 
 ## What's NOT done — the one real wall
 
@@ -76,19 +92,6 @@ environment with the Android SDK and unrestricted network, i.e. your machine.
    enrolled continuously for 14 days**, before Google unlocks production
    publishing — start rounding up testers now, that's the real bottleneck,
    not the build.
-
-- **App icon** — done. Reuses the game's exact hand-drawn character art
-  (same drawing code as `turd.draw()` in `index.html`) on a navy `#122038`
-  background with a soft gold glow. All density buckets regenerated
-  (`mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/{ic_launcher, ic_launcher_round,
-  ic_launcher_foreground}.png`), the adaptive-icon background color updated
-  to match (`values/ic_launcher_background.xml`), and the old generic
-  Capacitor template vector art removed. Verified at true 48px size
-  (smallest launcher size, mdpi) — still reads clearly. A separate
-  512×512 Play Store listing icon is at `store-assets/icon-512.png`.
-
-- **Feature graphic** — done. `store-assets/feature-graphic.png` (1024×500,
-  the exact size Play Console requires for the listing page).
 
 ## Still to do (not started)
 
