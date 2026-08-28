@@ -1,0 +1,22 @@
+{
+  "appId": "com.platinumlogik.crappyturd",
+  "appName": "Crappy Turd",
+  "webDir": "www",
+  "backgroundColor": "#122038",
+  "android": {
+    "backgroundColor": "#122038"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#122038",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#00000000"
+    }
+  }
+}
